@@ -22,3 +22,9 @@ const unsigned char SHIP_MAX_SIZE = 4;
  **/ 
 void locateShip(char* board, unsigned char* x_ini, unsigned char* y_ini, unsigned char* x_end, unsigned char* y_end);
 
+
+/**
+ * Reads safely from user input a variable of the type specified by the type parameter.
+ * Forces the user to introduce a valid input. Stores data read in readed_variable.
+ **/
+void bulletproof_input(c_type type, void* readed_variable);
