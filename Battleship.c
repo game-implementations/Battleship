@@ -1,4 +1,4 @@
-#include "battleship.h"
+#include "Battleship.h"
 
 int main(int nargs, char* args[])
 {

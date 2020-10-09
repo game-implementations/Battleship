@@ -1,14 +1,14 @@
 CC = gcc
 CFLAGS = -O3 -Wall
 
-all : c_script
+all : DoubleLinkedList Battleship
 
-c_script : c_script.c
-	$(CC) $(CFLAGS) c_script.c -o c_script -lm
+Battleship : Battleship.c DoubleLinkedList.c
+	$(CC) $(CFLAGS) DoubleLinkedList.c Battleship.c -o Battleship
 
-run : c_script
-	./c_script
+run : Battleship
+	./Battleship
 
 .PHONY : clean
 clean :
-	rm -f c_script
+	rm -f Battleship DoubleLinkedList
