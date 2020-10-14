@@ -1,7 +1,7 @@
 CC = gcc
 CFLAGS = -O3 -Wall
 
-all : DoubleLinkedList Battleship
+all : Battleship
 
 Battleship : Battleship.c DoubleLinkedList.c
 	$(CC) $(CFLAGS) DoubleLinkedList.c Battleship.c -o Battleship

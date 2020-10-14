@@ -32,7 +32,7 @@ typedef struct Player {
 
 
 // GLOBAL VARIABLE DEFINITIONS
-extern unsigned char DIM;  // Contains the dimension of the board. Most of functions use this variable
+extern unsigned int DIM;  // Contains the dimension of the board. Most of functions use this variable
 
 
 // PROCEDURE-LIKE (STATIC) FUNCTIONS
@@ -90,15 +90,6 @@ void floodSorroundings(char* board, unsigned char x, unsigned char y);
 
 
 /**
- * Translates a letter representing a column of the board to the corresponding
- * integer to index in the array. For example 'A' --> 0, 'B' --> 1, ..., 'X' --> dim - 1
- * @param column
- * @return
- */
-unsigned char translateColumn(unsigned char column);
-
-
-/**
  * Prints the board given by parameter.
  * @param board
  */
@@ -116,7 +107,7 @@ void showBoard(char* board);
  * @param y
  * @return
  */
-unsigned char shoot(char* board, unsigned char x, unsigned char y);
+unsigned int shoot(char* board, unsigned int x, unsigned int y);
 
 
 /**
@@ -131,7 +122,7 @@ unsigned char shoot(char* board, unsigned char x, unsigned char y);
  * @param board
  * @param dim
  */
-void computeNextMovement(char* board, unsigned char* x, unsigned char* y);
+void computeNextMovement(char* board, unsigned int* x, unsigned int* y);
 
 
 /**
@@ -148,7 +139,7 @@ int calculateScore(DoubleLinkedList tableResultMoves);
  * This function expects correct coordinates.
  * This function always places the coordinates with lower values in *x_ini and *y_ini
  **/ 
-void locateShip(char* board, unsigned char* x_ini, unsigned char* y_ini, unsigned char* x_end, unsigned char* y_end);
+void locateShip(char* board, unsigned int* x_ini, unsigned int* y_ini, unsigned int* x_end, unsigned int* y_end);
 
 
 /**
