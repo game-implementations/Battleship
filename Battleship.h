@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <stdbool.h>
 #include <stdlib.h>
+#include <time.h>
 #include "DoubleLinkedList.h"
 
 
@@ -77,7 +78,7 @@ char* startAttackBoard();
  * @param y
  * @return
  */
-bool isSunk(char* board, unsigned char x, unsigned char y);
+bool isSunk(char* board, unsigned int x, unsigned int y);
 
 
 /**
@@ -86,7 +87,7 @@ bool isSunk(char* board, unsigned char x, unsigned char y);
  * @param x
  * @param y
  */
-void floodSorroundings(char* board, unsigned char x, unsigned char y);
+void floodSorroundings(char* board, unsigned int x, unsigned int y);
 
 
 /**
