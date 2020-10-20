@@ -7,11 +7,17 @@
 
 
 // DEFINES
+// Cell symbols
 #define NOT_DISCOVERED_CELL '?'
 #define WATER '~'
 #define SHOT_WATER '-'
 #define SHIP '@'
 #define SHOT_SHIP 'X'
+// Result of a shot
+#define RESULT_REPEATED_CELL 0
+#define RESULT_WATER 1
+#define RESULT_SHOT 2
+#define RESULT_SHOT_AND_SUNK 3
 
 
 // CONSTANT VALUES

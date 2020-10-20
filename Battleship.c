@@ -268,6 +268,25 @@ char* startDefenseBoardAuto()
 }
 
 
+/**
+ * Returns two coordinates representing a cell that has been targeted as the next shot.
+ * This function tries to optimize the number of calls needed to this function in order to finish the game as soon
+ * as possible.
+ *
+ * Static parameters:
+ * static unsigned int state;
+ * static unsigned int tried_state;
+ *
+ * @param board
+ * @param dim
+ */
+void computeNextMovement(char* board, unsigned int* x, unsigned int* y, int result_last_shot)
+{
+    static unsigned int state = 0;
+    if (result_last_shot == RESULT_SHOT_AND_SUNK) state = 0;
+    .
+}
+
 
 int main(int nargs, char* args[])
 {
