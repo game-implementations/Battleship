@@ -1,5 +1,5 @@
 #include "Battleship.h"
-unsigned int DIM = 12;
+unsigned int DIM = 10;
 
 
 
@@ -59,14 +59,18 @@ void locateShip(char* board, unsigned int* x_ini, unsigned int* y_ini, unsigned 
 {
     *x_end = *x_ini;
     *y_end = *y_ini;
+    int x_init = *x_ini, y_init = *y_ini;
+
+    while (*x_end < DIM && (board[*y_end * DIM + *x_end] == SHIP || board[*y_end * DIM + *x_end] == SHOT_SHIP)) (*x_end)++;
+    (*x_end)--;
     while (*y_end < DIM && (board[*y_end * DIM + *x_end] == SHIP || board[*y_end * DIM + *x_end] == SHOT_SHIP)) (*y_end)++;
     (*y_end)--;
-    while (*y_end < DIM && (board[*y_end * DIM + *x_end] == SHIP || board[*y_end * DIM + *x_end] == SHOT_SHIP)) (*x_end)++;
-    (*x_end)--;
-    while (*y_ini >= 0 && (board[*y_ini * DIM + *x_ini] == SHIP || board[*y_ini * DIM + *x_ini] == SHOT_SHIP)) (*y_ini)--;
-    (*y_ini)++;
-    while (*x_ini >= 0 && (board[*y_ini * DIM + *x_ini] == SHIP || board[*y_ini * DIM + *x_ini] == SHOT_SHIP)) (*x_ini)--;
-    (*x_ini)++;
+    while (x_init >= 0 && (board[*y_ini * DIM + x_init] == SHIP || board[*y_ini * DIM + x_init] == SHOT_SHIP)) x_init--;
+    x_init++;
+    while (y_init >= 0 && (board[y_init * DIM + *x_ini] == SHIP || board[y_init * DIM + *x_ini] == SHOT_SHIP)) y_init--;
+    y_init++;
+    *x_ini = x_init;
+    *y_ini = y_init;
 }
 
 
@@ -80,8 +84,8 @@ void floodSorroundings(char* board, unsigned int x, unsigned int y)
 {
     unsigned int x_ini = x, y_ini = y, x_end, y_end;
     locateShip(board, &x_ini, &y_ini, &x_end, &y_end);
-    if (x_ini != 0) x_ini--;
-    if (y_ini != 0) y_ini--;
+    if (x_ini > 0) x_ini--;
+    if (y_ini > 0) y_ini--;
     if (x_end < DIM - 1) x_end++;
     if (y_end < DIM - 1) y_end++;
     for (unsigned int i = x_ini; i <= x_end; i++)
@@ -159,9 +163,9 @@ bool isSunk(char* board, unsigned int x, unsigned int y)
 {
     unsigned int x_ini, y_ini, x_end, y_end;
     locateShip(board, &x_ini, &y_ini, &x_end, &y_end);
-    for (unsigned int i = x_ini; i < x_end; i++)
+    for (unsigned int i = x_ini; i <= x_end; i++)
     {
-        for (unsigned int j = y_ini; j < y_end; j++)
+        for (unsigned int j = y_ini; j <= y_end; j++)
         {
             if (board[j * DIM + i] == SHIP) return false;
         }
@@ -175,15 +179,13 @@ bool startDefenseBoardAutoDelegate(char* defense_board)
     unsigned int x_ini, y_ini, x_end, y_end, number_of_tries;
     for (unsigned int ship_size = 1; ship_size <= SHIP_MAX_SIZE; ship_size++)
     {
-        getchar();
-        printf("%u", ship_size);
         for (unsigned int ship_counter = 0; ship_counter < NUM_SHIPS_BY_SIZE[ship_size - 1]; ship_counter++)
         {
             number_of_tries = 0;
             while (true)
             {
-                x_ini = rand() % (DIM - (ship_size - 1));
-                y_ini = rand() % (DIM - (ship_size - 1));
+                x_ini = rand() % DIM;
+                y_ini = rand() % DIM;
                 if (ship_size > 1)
                 {
                     if (rand() % 2)
@@ -202,6 +204,7 @@ bool startDefenseBoardAutoDelegate(char* defense_board)
                     x_end = x_ini;
                     y_end = y_ini;
                 }
+                if (y_end >= DIM || x_end >= DIM) continue;
 
                 bool free_location = true;
                 for (unsigned int i = x_ini; i <= x_end; i++)
@@ -213,19 +216,19 @@ bool startDefenseBoardAutoDelegate(char* defense_board)
                 }
                 if (free_location)
                 {
-                    for (unsigned int i = x_ini; i < x_end; i++)
+                    for (unsigned int i = x_ini; i <= x_end; i++)
                     {
-                        for (unsigned int j = y_ini; j < y_end; j++)
+                        for (unsigned int j = y_ini; j <= y_end; j++)
                         {
                             defense_board[j * DIM + i] = SHIP;
                         }
                     }
-                    floodSorroundings(defense_board, x_ini, x_end);
+                    floodSorroundings(defense_board, x_ini, y_ini);
                     break;
                 }
                 else
                 {
-                    if (number_of_tries > 30000)
+                    if (number_of_tries > 100000)
                     {
                         return false;
                     }
@@ -256,6 +259,10 @@ char* startDefenseBoardAuto()
 
         if (!startDefenseBoardAutoDelegate(defense_board)) continue;
         else break;
+    }
+    for (unsigned int i = 0; i < DIM * DIM; i++)
+    {
+        if (defense_board[i] == NOT_DISCOVERED_CELL) defense_board[i] = WATER;
     }
     return defense_board;
 }
