@@ -129,7 +129,7 @@ unsigned int shoot(char* board, unsigned int x, unsigned int y);
  * @param board
  * @param dim
  */
-void computeNextMovement(char* board, unsigned int* x, unsigned int* y);
+void computeNextMovement(char* board, unsigned int* x, unsigned int* y, int result_last_shot);
 
 
 /**
@@ -147,6 +147,37 @@ int calculateScore(DoubleLinkedList tableResultMoves);
  * This function always places the coordinates with lower values in *x_ini and *y_ini
  **/ 
 void locateShip(char* board, unsigned int* x_ini, unsigned int* y_ini, unsigned int* x_end, unsigned int* y_end);
+
+
+
+void calculateEndPosition(char* board, unsigned int x_ini, unsigned int y_ini, unsigned int* x_end, unsigned int* y_end, unsigned int ship_size, bool orientation);
+
+
+/**
+ * Returns true if the ship specified by parameters does not collide wth any elements of the given board.
+ * It also returns the computed end position of the ship
+ * @param defense_board
+ * @param x_ini
+ * @param y_ini
+ * @param x_end
+ * @param y_end
+ * @param ship_size
+ * @param orientation
+ * @return
+ */
+bool doesFit(char* defense_board, unsigned int x_ini, unsigned int y_ini, unsigned int* x_end, unsigned int* y_end, unsigned int ship_size, bool orientation);
+
+
+/**
+ * Writes a ship in the given position in the given board
+ * @param defense_board
+ * @param x_ini
+ * @param y_ini
+ * @param ship_size
+ * @param orientation 1 for vertical orientations, 0 for horizontal
+ * @return
+ */
+void initializeShip(char* defense_board, unsigned int x_ini, unsigned int y_ini, unsigned int x_end, unsigned int y_end, unsigned int ship_size, bool orientation);
 
 
 /**

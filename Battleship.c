@@ -174,9 +174,71 @@ bool isSunk(char* board, unsigned int x, unsigned int y)
 }
 
 
+/**
+ * Returns true if the ship specified by parameters collisions wth any elements of the given board
+ * @param defense_board
+ * @param x_ini
+ * @param y_ini
+ * @param ship_size
+ * @param orientation 1 for vertical orientations, 0 for horizontal
+ * @return
+ */
+bool doesFit(char* defense_board, unsigned int x_ini, unsigned int y_ini, unsigned int* x_end, unsigned int* y_end, unsigned int ship_size, bool orientation)
+{
+    if (ship_size > 1)
+    {
+        if (orientation)
+        {
+            (*x_end) = x_ini + ship_size - 1;
+            (*y_end) = y_ini;
+        }
+        else
+        {
+            (*y_end) = y_ini + ship_size - 1;
+            (*x_end) = x_ini;
+        }
+    }
+    else
+    {
+        (*x_end) = x_ini;
+        (*y_end) = y_ini;
+    }
+
+    for (unsigned int i = x_ini; i <= (*x_end); i++)
+    {
+        for (unsigned int j = y_ini; j <= (*y_end); j++)
+        {
+            if (defense_board[j * DIM + i] != NOT_DISCOVERED_CELL) return false;
+        }
+    }
+    return true;
+}
+
+
+/**
+ * Writes a ship in the given position in the given board
+ * @param defense_board
+ * @param x_ini
+ * @param y_ini
+ * @param ship_size
+ * @param orientation 1 for vertical orientations, 0 for horizontal
+ * @return
+ */
+void initializeShip(char* defense_board, unsigned int x_ini, unsigned int y_ini, unsigned int x_end, unsigned int y_end, unsigned int ship_size, bool orientation)
+{
+    for (unsigned int i = x_ini; i <= x_end; i++)
+    {
+        for (unsigned int j = y_ini; j <= y_end; j++)
+        {
+            defense_board[j * DIM + i] = SHIP;
+        }
+    }
+}
+
+
 bool startDefenseBoardAutoDelegate(char* defense_board)
 {
-    unsigned int x_ini, y_ini, x_end, y_end, number_of_tries;
+    unsigned int x_ini, y_ini, x_end, y_end, orientation, number_of_tries;
     for (unsigned int ship_size = 1; ship_size <= SHIP_MAX_SIZE; ship_size++)
     {
         for (unsigned int ship_counter = 0; ship_counter < NUM_SHIPS_BY_SIZE[ship_size - 1]; ship_counter++)
@@ -188,52 +250,22 @@ bool startDefenseBoardAutoDelegate(char* defense_board)
                 y_ini = rand() % DIM;
                 if (ship_size > 1)
                 {
-                    if (rand() % 2)
-                    {
-                        x_end = x_ini + ship_size - 1;
-                        y_end = y_ini;
-                    }
-                    else
-                    {
-                        y_end = y_ini + ship_size - 1;
-                        x_end = x_ini;
-                    }
+                    orientation = rand() % 2;
                 }
-                else
+                if (doesFit(defense_board, x_ini, y_ini, &x_end, &y_end, ship_size, orientation))
                 {
-                    x_end = x_ini;
-                    y_end = y_ini;
-                }
-                if (y_end >= DIM || x_end >= DIM) continue;
-
-                bool free_location = true;
-                for (unsigned int i = x_ini; i <= x_end; i++)
-                {
-                    for (unsigned int j = y_ini; j <= y_end; j++)
-                    {
-                        if (defense_board[j * DIM + i] != NOT_DISCOVERED_CELL) free_location = false;
-                    }
-                }
-                if (free_location)
-                {
-                    for (unsigned int i = x_ini; i <= x_end; i++)
-                    {
-                        for (unsigned int j = y_ini; j <= y_end; j++)
-                        {
-                            defense_board[j * DIM + i] = SHIP;
-                        }
-                    }
+                    initializeShip(defense_board, x_ini, y_ini, x_end, y_end, ship_size, orientation);
                     floodSorroundings(defense_board, x_ini, y_ini);
                     break;
                 }
                 else
                 {
+                    number_of_tries++;
                     if (number_of_tries > 100000)
                     {
                         return false;
                     }
                 }
-
             }
 
         }
@@ -284,7 +316,13 @@ void computeNextMovement(char* board, unsigned int* x, unsigned int* y, int resu
 {
     static unsigned int state = 0;
     if (result_last_shot == RESULT_SHOT_AND_SUNK) state = 0;
-    .
+    switch (state)
+    {
+        case 0:
+        {
+
+        }
+    }
 }
 
 
