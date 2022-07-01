@@ -20,6 +20,8 @@
 #define RESULT_SHOT 2
 #define RESULT_SHOT_AND_SUNK 3
 
+// Magic numbers
+#define AUTO_SHIP_PLACEMENT_MAX_TRIES 100000
 
 // CONSTANT VALUES
 /**

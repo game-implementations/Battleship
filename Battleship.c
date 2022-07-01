@@ -2,12 +2,12 @@
 
 unsigned int DIM = 10;
 
-unsigned int naturalLog10(unsigned int x, unsigned int base)
+unsigned int naturalLog(unsigned int x, unsigned int base)
 {
-    unsigned int nlog10 = 0;
+    unsigned int nlog = 0;
     for (unsigned int i = x; i > 0; i /= base)
-        nlog10++;
-    return nlog10;
+        nlog++;
+    return nlog - 1;
 }
 
 void pause()
@@ -21,40 +21,40 @@ void pause()
 
 void showBoard(char** board)
 {
+    unsigned int DIM_num_digits = naturalLog(DIM, 10) + 1;
 
-    unsigned int DIM_num_digits = 0;
-    for (unsigned int j = DIM; j > 0; j /= 10)
-    {
-        DIM_num_digits++;
-    }
-
-	printf("\n ");
-	for (unsigned int i = 0; i < DIM_num_digits; i++)
-    {
+    // Begin printing board in new line
+	printf("\n");
+    // Before printing the columns (A, B, C...) print as many spaces as the number of digits that DIM has + 1 for the
+    // separation
+	for (unsigned int i = 0; i < DIM_num_digits + 1; i++)
 	    printf(" ");
-    }
+
+    // Print the columns, starting from A
 	for (unsigned int i = 0; i < DIM; i++)
 	{
 		printf("%c", 'A' + i);
 	}
-	printf("\n");
+
+    // For each row
 	for (unsigned int j = 0; j < DIM; j++)
-	{	
+	{
+        // Begin in a new line and print the current row j as number
 		printf("\n%i", j + 1);
-		unsigned int current_row_num_digits = 0;
-        for (unsigned int i = j + 1; i > 0; i /= 10)
-        {
-            current_row_num_digits++;
-        }
-        for (unsigned int i = 0; i < DIM_num_digits - current_row_num_digits + 1; i++)
+        // Compute how many digits has the current row number
+		unsigned int current_row_num_digits = naturalLog(j + 1, 10) + 1;
+        // Print as many spaces as needed to reach the num digits of DIM knowing the num digits of the current row num
+        for (unsigned int i = 0; i < (DIM_num_digits - current_row_num_digits) + 1; i++)
         {
             printf(" ");
         }
+        // After the spaces print the board content
 		for (unsigned int i = 0; i < DIM; i++)
 		{
 			printf("%c", board[i][j]);
 		}
 	}
+    // End with newline
 	printf("\n");
 }
 
@@ -103,7 +103,6 @@ void floodSurroundings(char** board, unsigned int x, unsigned int y)
             if (board[i][j] != SHOT_SHIP && board[i][j] != SHIP) board[i][j] = WATER;
         }
     }
-    //printf("ship in place\n");  pause();  // TODO
 }
 
 unsigned int shoot(char** board, unsigned int x, unsigned int y)
@@ -253,17 +252,13 @@ bool initializeBoardWithShipsAuto_auxiliar(char** defense_board)
                 if (doesFit(defense_board, x_ini, y_ini, &x_end, &y_end, ship_size, orientation))
                 {
                     initializeShip(defense_board, x_ini, y_ini, x_end, y_end);
-
-                    // printf("\n\nINIT: ship init %u %u %u %u ", x_ini, x_end, y_ini, y_end); // TODO
-                    // showBoard(defense_board);  pause(); // TODO
-
                     floodSurroundings(defense_board, x_ini, y_ini);
                     break;
                 }
                 else  // If it does not fit, annotate another try. If we go through the max tries values, return false
                 {
                     number_of_tries++;
-                    if (number_of_tries > 100000)
+                    if (number_of_tries > AUTO_SHIP_PLACEMENT_MAX_TRIES)
                     {
                         return false;
                     }
@@ -299,6 +294,9 @@ int main(int nargs, char* args[])
     initializeBoardWithShipsAuto(board);
 
     showBoard(board);
+
+    printf("%i", naturalLog(9, 10));
+    printf("%i", naturalLog(10, 10));
 
 }
 
