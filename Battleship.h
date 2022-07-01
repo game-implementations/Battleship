@@ -13,6 +13,7 @@
 #define SHOT_WATER '-'
 #define SHIP '@'
 #define SHOT_SHIP 'X'
+
 // Result of a shot
 #define RESULT_REPEATED_CELL 0
 #define RESULT_WATER 1
@@ -32,11 +33,15 @@ const unsigned char SHIP_MAX_SIZE = 4;
 
 // TYPE DEFINITION STRUCTURE FOR A PLAYER
 typedef struct Player {
-    unsigned char* attackBoard;  // Points to the board containing the revealed positions of the enemy
-    unsigned char* defenseBoard;  // Points to the board that contains our ships
+    unsigned char** attackBoard;  // Points to the board containing the revealed positions of the enemy
+    unsigned char** defenseBoard;  // Points to the board that contains our ships
     DoubleLinkedList* tableResultMoves;  // Contains all the results from the shots of this player
 } Player;
 
+typedef struct Position {
+    unsigned int x;
+    unsigned int y;
+} Position;
 
 // GLOBAL VARIABLE DEFINITIONS
 extern unsigned int DIM;  // Contains the dimension of the board. Most of functions use this variable
@@ -49,15 +54,47 @@ extern unsigned int DIM;  // Contains the dimension of the board. Most of functi
  **/
 void bulletproof_input(size_t type, void* read_variable);
 
+/**
+ * Calculates the natural logarithm of a number x with a given base b
+ * @param x Entry of the logarithm
+ * @param b Base of the logarithm
+ * @return Result of the logarithm
+ */
+unsigned int naturalLog10(unsigned int x, unsigned int b);
+
+/**
+ * Pauses the code
+ */
+void pause();
 
 // METHOD-LIKE FUNCTIONS FOR THE BATTLESHIP GAME
+
+/**
+ * Reserves memory for a board and returns the pointer to the board.
+ * @return new board
+ */
+char** reserveBoard();
+
+/**
+ * Fills the received board with NOT_DISCOVERED symbols.
+ * @param board
+ */
+void initializeBoard(char** board);
+
 /**
  * Reserves memory space for a board of the given dimensions, initializes it with WATER and the ships
  * and returns it.
  * @return pointer to the initialized board with dimensions DIM x DIM
  */
-char* startDefenseBoardAuto();
+void initializeBoardWithShipsAuto(char** board);
 
+/**
+ * Tries to initialize the board with all the ships and returns true if has been initialized correctly and false if the
+ * board is not completely initialized.
+ * @param board game board
+ * @return true if it is correctly initialized and false if is not completely initialized
+ */
+bool initializeBoardWithShipsAuto_auxiliar(char** board);
 
 /**
  * Reserves memory space for a board of the given dimensions, initializes it with WATER and asks the user to place his
@@ -65,15 +102,7 @@ char* startDefenseBoardAuto();
  * the user to try again.
  * @return pointer to the initialized board with dimensions DIM x DIM
  */
-char* startDefenseBoardManual();
-
-
-/**
- * Reserves memory space for a board of the given dimensions, initializes it with NOT_DISCOVERED_CELL and returns it.
- * @return
- */
-char* startAttackBoard();
-
+char** initializeBoardWithShipsManual();
 
 /**
  * Locates the limit of the ship pointed by the coordinates x and y and then checks
@@ -84,7 +113,7 @@ char* startAttackBoard();
  * @param y
  * @return
  */
-bool isSunk(char* board, unsigned int x, unsigned int y);
+bool isSunk(char** board, unsigned int x, unsigned int y);
 
 
 /**
@@ -93,14 +122,14 @@ bool isSunk(char* board, unsigned int x, unsigned int y);
  * @param x
  * @param y
  */
-void floodSorroundings(char* board, unsigned int x, unsigned int y);
+void floodSurroundings(char** board, unsigned int x, unsigned int y);
 
 
 /**
  * Prints the board given by parameter.
  * @param board
  */
-void showBoard(char* board);
+void showBoard(char** board);
 
 
 /**
@@ -114,7 +143,7 @@ void showBoard(char* board);
  * @param y
  * @return
  */
-unsigned int shoot(char* board, unsigned int x, unsigned int y);
+unsigned int shoot(char** board, unsigned int x, unsigned int y);
 
 
 /**
@@ -129,7 +158,7 @@ unsigned int shoot(char* board, unsigned int x, unsigned int y);
  * @param board
  * @param dim
  */
-void computeNextMovement(char* board, unsigned int* x, unsigned int* y, int result_last_shot);
+void computeNextMovement(char** board, unsigned int* x, unsigned int* y, int result_last_shot);
 
 
 /**
@@ -146,12 +175,7 @@ int calculateScore(DoubleLinkedList tableResultMoves);
  * This function expects correct coordinates.
  * This function always places the coordinates with lower values in *x_ini and *y_ini
  **/ 
-void locateShip(char* board, unsigned int* x_ini, unsigned int* y_ini, unsigned int* x_end, unsigned int* y_end);
-
-
-
-void calculateEndPosition(char* board, unsigned int x_ini, unsigned int y_ini, unsigned int* x_end, unsigned int* y_end, unsigned int ship_size, bool orientation);
-
+void locateShip(char** board, unsigned int* x_ini, unsigned int* y_ini, unsigned int* x_end, unsigned int* y_end);
 
 /**
  * Returns true if the ship specified by parameters does not collide wth any elements of the given board.
@@ -165,19 +189,19 @@ void calculateEndPosition(char* board, unsigned int x_ini, unsigned int y_ini, u
  * @param orientation
  * @return
  */
-bool doesFit(char* defense_board, unsigned int x_ini, unsigned int y_ini, unsigned int* x_end, unsigned int* y_end, unsigned int ship_size, bool orientation);
+bool doesFit(char** defense_board, unsigned int x_ini, unsigned int y_ini, unsigned int* x_end, unsigned int* y_end, unsigned int ship_size, bool orientation);
+
 
 
 /**
- * Writes a ship in the given position in the given board
+ * Initializes a new ship in the board given its begin and end positions
  * @param defense_board
  * @param x_ini
  * @param y_ini
- * @param ship_size
- * @param orientation 1 for vertical orientations, 0 for horizontal
- * @return
+ * @param x_end
+ * @param y_end
  */
-void initializeShip(char* defense_board, unsigned int x_ini, unsigned int y_ini, unsigned int x_end, unsigned int y_end, unsigned int ship_size, bool orientation);
+void initializeShip(char** defense_board, unsigned int x_ini, unsigned int y_ini, unsigned int x_end, unsigned int y_end);
 
 
 /**
