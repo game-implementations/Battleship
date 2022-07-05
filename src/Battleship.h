@@ -152,9 +152,18 @@ void floodSurroundings(char** board, Position shipPosition);
  * Locates a Ship pointed by the variables *x_ini and *y_ini by saving in *x_ini and *y_ini the initial coordinates of the ship
  * and saving in *x_end and *y_end the final coordinates of the ship.
  * This function expects correct coordinates.
- * This function always places the coordinates with lower values in *x_ini and *y_ini
+ * This function always places the coordinates with lower (or equal) values in *x_ini and *y_ini
  **/
 void locateShip(char** board, Position* position_ini, Position* position_end);
+
+/**
+ * Detects the orientation of a ship in the board. Returns 0 if no orientation is detected, 1 if the ship is vertical
+ * and 2 if the ship is horizontal. The function assumes that there is a ship in the received position.
+ * @param board
+ * @param shipPosition
+ * @return
+ */
+unsigned int detectOrientation(char** board, Position shipPosition);
 
 /**
  * Locates the limit of the ship pointed by the coordinates x and y and then checks

@@ -171,15 +171,52 @@ void locateShip(char** board, Position* position_ini, Position* position_end)
         position_ini->y--;
 }
 
+unsigned int detectOrientation(char** board, Position shipPosition)
+{
+    // First detect any other ship position in the surroundings
+    if (shipPosition.x > 0 && (board[shipPosition.x - 1][shipPosition.y] == SHOT_SHIP || board[shipPosition.x - 1][shipPosition.y] == SHIP))
+        return 2;
+    else if (shipPosition.y > 0 && (board[shipPosition.x][shipPosition.y - 1] == SHOT_SHIP || board[shipPosition.x][shipPosition.y - 1] == SHIP))
+        return 1;
+    else if (shipPosition.x < (DIM - 1) && (board[shipPosition.x + 1][shipPosition.y] == SHOT_SHIP || board[shipPosition.x + 1][shipPosition.y] == SHIP))
+        return 2;
+    else if (shipPosition.y < (DIM - 1) && (board[shipPosition.x][shipPosition.y + 1] == SHOT_SHIP || board[shipPosition.x][shipPosition.y + 1] == SHIP))
+        return 1;
+
+    /*
+     * Then we check the cases where there is water, shot water or board limits on both sides, assuming that the ship
+     * has just one point discovered, but it is longer.
+     */
+    if ((shipPosition.x == 0 || board[shipPosition.x - 1][shipPosition.y] != NOT_DISCOVERED_CELL) && (shipPosition.x == (DIM - 1) || board[shipPosition.x + 1][shipPosition.y] != NOT_DISCOVERED_CELL))
+        return 1;
+    else if ((shipPosition.y == 0 || board[shipPosition.x][shipPosition.y - 1] != NOT_DISCOVERED_CELL) && (shipPosition.y == (DIM - 1) || board[shipPosition.x][shipPosition.y + 1] != NOT_DISCOVERED_CELL))
+        return 2;
+    return 0;
+}
+
 bool isSunk(char** board, Position position)
 {
     Position end;
 
     locateShip(board, &position, &end);
-    for (unsigned int i = position.x; i <= end.x; i++)
-        for (unsigned int j = position.y; j <= end.y; j++)
-            if (board[i][j] == SHIP) return false;
 
+    if (position.x > 0)
+        position.x--;
+    if (end.x < DIM - 1)
+        end.x++;
+    if (position.y > 0)
+        position.y--;
+    if (end.y < DIM - 1)
+        end.y++;
+
+    for (unsigned int i = position.x; i < end.x; i++)
+    {
+        for (unsigned int j = position.y; j < end.y; j++)
+        {
+            if (board[i][j] == NOT_DISCOVERED_CELL || board[i][j] == SHIP)
+                return false;
+        }
+    }
     return true;
 }
 
@@ -243,7 +280,20 @@ unsigned int shoot(char** board, Position position)
 Position computeNextMovement(char** attack_board, Position lastShotPosition, unsigned int result_last_shot)
 {
     unsigned int state;
-    Position initialPosition;
+    Position surroundingPositions[4], iniCurrentShipPosition, endCurrentShipPosition;
+    unsigned int surroundingPositionsSize = 4;
+    for (unsigned int i = 0; i < surroundingPositionsSize; i++)
+        surroundingPositions[i] = lastShotPosition;
+
+    if (surroundingPositions[0].x < DIM - 1)
+        surroundingPositions[0].x++;
+    if (surroundingPositions[1].y > 0)
+        surroundingPositions[1].y--;
+    if (surroundingPositions[2].x > 0)
+        surroundingPositions[2].x--;
+    if (surroundingPositions[3].y < DIM - 1)
+        surroundingPositions[3].y++;
+
     // First detect the previous state from the result
     if (result_last_shot == RESULT_SHOT_AND_SUNK || result_last_shot == RESULT_INITIAL)
     {
@@ -252,15 +302,38 @@ Position computeNextMovement(char** attack_board, Position lastShotPosition, uns
     }
     else if (result_last_shot == RESULT_WATER)
     {
-        initialPosition = lastShotPosition;
-        // We need to check the four surrounding cells for a shot but not sunk ship
 
-        // Right
-        initialPosition.x++;
-        if (attack_board[initialPosition.x][initialPosition.y] == SHOT_SHIP && ! isSunk(attack_board, initialPosition))
+        // We need to check the four surrounding cells for a shot but not sunk ship
+        unsigned int i = 0;
+        while (i < 4
+        && (
+                (surroundingPositions[i].x == lastShotPosition.x && surroundingPositions[i].y == lastShotPosition.y)
+        || (attack_board[surroundingPositions[i].x][surroundingPositions[i].y] == WATER || attack_board[surroundingPositions[i].x][surroundingPositions[i].y] == SHOT_WATER)
+        || (attack_board[surroundingPositions[i].x][surroundingPositions[i].y] == SHOT_SHIP && isSunk(attack_board,  surroundingPositions[i]))
+        )
+        )
         {
-            
+            i++;
         }
+        // If we arrived to the end it means we did not find a surrounding ship
+        if (i == surroundingPositionsSize)
+        {
+            state = STATE_SEEK;
+        }
+        else
+        {
+            // We did find a not destroyed ship in surroundingPositions[i], locateShip
+            iniCurrentShipPosition = surroundingPositions[i];
+            // Now we need to locate the ship to obtain info about orientation
+            locateShip(attack_board, &iniCurrentShipPosition, &endCurrentShipPosition);
+            if (iniCurrentShipPosition.x == endCurrentShipPosition.x && iniCurrentShipPosition.y == endCurrentShipPosition.y)
+            {
+                // It is an only point discovered,
+
+            }
+
+        }
+
 
     }
 }
