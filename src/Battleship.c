@@ -240,9 +240,8 @@ unsigned int shoot(char** board, Position position)
     }
 }
 
-void computeNextMovement(char** board, Position* position, int result_last_shot)
+Position computeNextMovement(char** board, AutomataState state, int result_last_shot)
 {
-    static unsigned int state = 0;
     if (result_last_shot == RESULT_SHOT_AND_SUNK) state = 0;
     switch (state)
     {

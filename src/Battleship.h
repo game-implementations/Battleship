@@ -46,6 +46,12 @@ typedef struct Position {
     unsigned int y;
 } Position;
 
+typedef struct AutomataState {
+    Position positionLastShot;
+    Position positionFirstShotCurrentShip;
+    unsigned int mode;
+} AutomataState;
+
 
 // GLOBAL VARIABLE DEFINITIONS
 extern unsigned int DIM;  // Contains the dimension of the board. . Most of functions use this variable
@@ -171,7 +177,7 @@ unsigned int shoot(char** board, Position position);
  * @param board
  * @param dim
  */
-void computeNextMovement(char** board, Position* position, int result_last_shot);
+Position computeNextMovement(char** board, AutomataState state, int result_last_shot);
 
 /**
  * Calculates the final points for the info of the shoots of a certain player.
