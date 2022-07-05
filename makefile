@@ -40,6 +40,7 @@ $(OBJDIR)/Battleship.o : $(SRCDIR)/Battleship.c
 $(BINDIR)/Battleship : $(OBJDIR)/Battleship.o $(LIBDIR)/DoubleLinkedList.so
 	mkdir -p $(BINDIR)
 	$(CC) $(CFLAGS) -o $(BINDIR)/Battleship $(OBJDIR)/Battleship.o $(LIBDIR)/DoubleLinkedList.so
+	chmod 111 $(BINDIR)/Battleship
 
 
 # Run Battleship binary
