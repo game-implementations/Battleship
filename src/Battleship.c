@@ -87,6 +87,7 @@ bool initializeBoardWithShipsAuto_auxiliar(char** defense_board)
                         return false;
                 }
             }
+            showBoard(defense_board);
         }
     }
     return true;
@@ -132,12 +133,12 @@ void initializeShip(char** defense_board, Position ini, unsigned int ship_size, 
 
 void floodSurroundings(char** board, Position position)
 {
-    Position ini = position, end;
+    Position end;
 
-    locateShip(board, &ini, &end);
+    locateShip(board, &position, &end);
 
-    if (ini.x > 0) ini.x--;
-    if (ini.y > 0) ini.y--;
+    if (position.x > 0) position.x--;
+    if (position.y > 0) position.y--;
     if (end.x < DIM - 1) end.x++;
     if (end.y < DIM - 1) end.y++;
 
