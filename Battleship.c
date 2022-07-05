@@ -78,8 +78,14 @@ bool initializeBoardWithShipsAuto_auxiliar(char** defense_board)
                 // If it does fit, put it and go to the next ship
                 if (doesFit(defense_board, ini, ship_size, orientation))
                 {
+                    printf("jhvjhv");
+                    pause();
                     initializeShip(defense_board, ini, ship_size, orientation);
+                    printf("end");
+                    pause();
                     floodSurroundings(defense_board, ini);
+                    printf("end2");
+                    pause();
                     break;
                 }
                 else  // If it does not fit, annotate another try. If we go through the max tries values, return false
@@ -130,22 +136,23 @@ void initializeShip(char** defense_board, Position ini, unsigned int ship_size, 
     }
 
     for (unsigned int i = ini.x; i <= end.x; i++)
-    {
         for (unsigned int j = ini.y; j <= end.y; j++)
-        {
             defense_board[i][j] = SHIP;
-        }
-    }
 }
 
 void floodSurroundings(char** board, Position position)
 {
-    Position end;
+    Position ini = position, end;
 
-    locateShip(board, &position, &end);
+    printf("\nlocate%i %i", ini.x, ini.y);
+   pause();
+    locateShip(board, &ini, &end);
 
-    if (position.x > 0) position.x--;
-    if (position.y > 0) position.y--;
+    printf("\nlocateafter%i %i", ini.x, ini.y);
+    pause();
+
+    if (ini.x > 0) ini.x--;
+    if (ini.y > 0) ini.y--;
     if (end.x < DIM - 1) end.x++;
     if (end.y < DIM - 1) end.y++;
 
@@ -160,6 +167,8 @@ void locateShip(char** board, Position* position_ini, Position* position_end)
     // Initialize end with the position of reference
     position_end->x = position_ini->x;
     position_end->y = position_ini->y;
+    // We need an int for our algorithm to be able to do 0-1=-1
+    int ini_x = position_ini->x, ini_y = position_ini->y;
 
     // Move position x end further to the end if a SHIP found
     while (position_end->x < DIM && (board[position_end->x][position_end->y] == SHIP || board[position_end->x][position_end->y] == SHOT_SHIP))
@@ -172,14 +181,18 @@ void locateShip(char** board, Position* position_ini, Position* position_end)
     position_end->y--;
 
     // Move position x ini further to the beginning if a SHIP found
-    while (position_ini->x >= 0 && (board[position_ini->x][position_ini->y] == SHIP || board[position_ini->x][position_ini->y] == SHOT_SHIP))
-        position_ini->x--;
-    position_ini->x++;
+    while (ini_x >= 0 && (board[ini_x][ini_y] == SHIP || board[ini_x][ini_y] == SHOT_SHIP))
+        ini_x--;
+    ini_x++;
 
     // Move position y ini further to the beginning if a SHIP found
-    while (position_ini->y >= 0 && (board[position_ini->x][position_ini->y] == SHIP || board[position_ini->x][position_ini->y] == SHOT_SHIP))
-        position_ini->y--;
-    position_ini->y++;
+    while (ini_y >= 0 && (board[ini_x][ini_y] == SHIP || board[ini_x][ini_y] == SHOT_SHIP))
+        ini_y--;
+    ini_y++;
+
+    // Return result
+    position_ini->x = ini_x;
+    position_ini->y = ini_y;
 }
 
 bool isSunk(char** board, Position position)
