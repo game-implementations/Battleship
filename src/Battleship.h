@@ -19,6 +19,22 @@
 #define RESULT_WATER 1
 #define RESULT_SHOT 2
 #define RESULT_SHOT_AND_SUNK 3
+#define RESULT_INITIAL 4
+
+// Mask states
+#define STATE_SEEK 0x00
+#define STATE_DESTROY 0x10
+#define STATE_VERTICAL 0x1C
+#define STATE_HORIZONTAL 0x18
+#define STATE_UP 0x1F
+#define STATE_DOWN 0x1E
+#define STATE_RIGHT 0x1B
+#define STATE_LEFT 0x1A
+#define STATE_MASK_MODE 0x10
+#define STATE_MASK_ORIENTATION_DETECTED 0x08
+#define STATE_MASK_ORIENTATION 0x04
+#define STATE_MASK_DIRECTION_DETECTED 0x02
+#define STATE_MASK_DIRECTION 0x01
 
 // Magic numbers
 #define AUTO_SHIP_PLACEMENT_MAX_TRIES 100000
@@ -35,26 +51,34 @@ const unsigned char SHIP_MAX_SIZE = 4;
 
 
 // TYPE DEFINITION
-typedef struct Player {
-    unsigned char** attackBoard;  // Points to the board containing the revealed positions of the enemy
-    unsigned char** defenseBoard;  // Points to the board that contains our ships
-    DoubleLinkedList* tableResultMoves;  // Contains all the results from the shots of this player
-} Player;
 
 typedef struct Position {
     unsigned int x;
     unsigned int y;
 } Position;
 
-typedef struct AutomataState {
-    Position positionLastShot;
-    Position positionFirstShotCurrentShip;
-    unsigned int mode;
-} AutomataState;
+    /*
+     * Register that uses the 5 bits of less weight.
+     * - The bit 4 (mask 0x10) at 0 or 1 determines if we are in SEEK mode or in DESTROY mode, respectively. In SEEK
+     *   mode we shoot randomly until a ship is hit, and we enter in DESTROY mode. In DESTROY mode we try to sink the
+     *   ship that made us enter in DESTROY mode, and we will enter again in SEEK mode if we destroy the ship.
+     * - The bit 3 (mask 0x08) at 1 or 0 determines if we have detected the orientation of the ship or not.
+     * - The bit 2 (mask 0x04) at 1 or 0 determines if the ship is vertical or horizontal. This value is valid only if
+     *   the bit 3 is at 1.
+     * - The bit 1 (mask 0x02) at 1 or 0 determines if we have detected a unique direction to sink the ship.
+     * - The bit 0 (mask 0x01) at 1 or 0 determines if we need to go RIGHT / UP or LEFT / DOWN, depending on the
+     *   corresponding value of bit 2.
+     */
+    //unsigned char mode;
 
+typedef struct Player {
+    unsigned char** attackBoard;  // Points to the board containing the revealed positions of the enemy
+    unsigned char** defenseBoard;  // Points to the board that contains our ships
+    DoubleLinkedList tableResultMoves;  // Contains all the results from the shots of this player
+} Player;
 
 // GLOBAL VARIABLE DEFINITIONS
-extern unsigned int DIM;  // Contains the dimension of the board. . Most of functions use this variable
+extern unsigned int DIM;  // Contains the dimension of the board. Accessible globally
 
 
 // PROCEDURE-LIKE (STATIC) FUNCTIONS
@@ -177,7 +201,7 @@ unsigned int shoot(char** board, Position position);
  * @param board
  * @param dim
  */
-Position computeNextMovement(char** board, AutomataState state, int result_last_shot);
+Position computeNextMovement(char** attach_board, Position lastShot, unsigned int result_last_shot);
 
 /**
  * Calculates the final points for the info of the shoots of a certain player.

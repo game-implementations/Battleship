@@ -240,15 +240,28 @@ unsigned int shoot(char** board, Position position)
     }
 }
 
-Position computeNextMovement(char** board, AutomataState state, int result_last_shot)
+Position computeNextMovement(char** attack_board, Position lastShotPosition, unsigned int result_last_shot)
 {
-    if (result_last_shot == RESULT_SHOT_AND_SUNK) state = 0;
-    switch (state)
+    unsigned int state;
+    Position initialPosition;
+    // First detect the previous state from the result
+    if (result_last_shot == RESULT_SHOT_AND_SUNK || result_last_shot == RESULT_INITIAL)
     {
-        case 0:
-        {
+        // We know that we are in the initial mode
+        state = STATE_SEEK;
+    }
+    else if (result_last_shot == RESULT_WATER)
+    {
+        initialPosition = lastShotPosition;
+        // We need to check the four surrounding cells for a shot but not sunk ship
 
+        // Right
+        initialPosition.x++;
+        if (attack_board[initialPosition.x][initialPosition.y] == SHOT_SHIP && ! isSunk(attack_board, initialPosition))
+        {
+            
         }
+
     }
 }
 
