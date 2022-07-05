@@ -23,6 +23,7 @@
 // Magic numbers
 #define AUTO_SHIP_PLACEMENT_MAX_TRIES 100000
 
+
 // CONSTANT VALUES
 /**
  * Defines the number of ships for each ship of different size.
@@ -33,7 +34,7 @@ const unsigned char NUM_SHIPS_BY_SIZE[] = {4, 3, 2, 1};
 const unsigned char SHIP_MAX_SIZE = 4;
 
 
-// TYPE DEFINITION STRUCTURE FOR A PLAYER
+// TYPE DEFINITION
 typedef struct Player {
     unsigned char** attackBoard;  // Points to the board containing the revealed positions of the enemy
     unsigned char** defenseBoard;  // Points to the board that contains our ships
@@ -45,8 +46,9 @@ typedef struct Position {
     unsigned int y;
 } Position;
 
+
 // GLOBAL VARIABLE DEFINITIONS
-extern unsigned int DIM;  // Contains the dimension of the board. Most of functions use this variable
+extern unsigned int DIM;  // Contains the dimension of the board. . Most of functions use this variable
 
 
 // PROCEDURE-LIKE (STATIC) FUNCTIONS
@@ -54,7 +56,7 @@ extern unsigned int DIM;  // Contains the dimension of the board. Most of functi
  * Reads safely from user input a variable of the type specified by the type parameter.
  * Forces the user to introduce a valid input. Stores data read in readed_variable.
  **/
-void bulletproof_input(size_t type, void* read_variable);
+void ** bulletproof_input(size_t type, void* read_variable);
 
 /**
  * Calculates the natural logarithm of a number x with a given base b
@@ -62,12 +64,13 @@ void bulletproof_input(size_t type, void* read_variable);
  * @param b Base of the logarithm
  * @return Result of the logarithm
  */
-unsigned int naturalLog10(unsigned int x, unsigned int b);
+unsigned int naturalLog(unsigned int x, unsigned int b);
 
 /**
  * Pauses the code
  */
 void pause();
+
 
 // METHOD-LIKE FUNCTIONS FOR THE BATTLESHIP GAME
 
@@ -91,20 +94,38 @@ void initializeBoard(char** board);
 void initializeBoardWithShipsAuto(char** board);
 
 /**
- * Tries to initialize the board with all the ships and returns true if has been initialized correctly and false if the
- * board is not completely initialized.
- * @param board game board
- * @return true if it is correctly initialized and false if is not completely initialized
- */
-bool initializeBoardWithShipsAuto_auxiliar(char** board);
-
-/**
  * Reserves memory space for a board of the given dimensions, initializes it with WATER and asks the user to place his
  * ship while there are ships remaining. The ships must be placed correctly or the program will show an error message to
  * the user to try again.
  * @return pointer to the initialized board with dimensions DIM x DIM
  */
-char** initializeBoardWithShipsManual();
+void initializeBoardWithShipsManual(char** board);
+
+/**
+ * Initializes a new ship in the board given its begin and end positions
+ * @param defense_board
+ * @param x_ini
+ * @param y_ini
+ * @param x_end
+ * @param y_end
+ */
+void initializeShip(char** defense_board, unsigned int x_ini, unsigned int y_ini, unsigned int x_end, unsigned int y_end);
+
+/**
+ * Fills with water all the positions surrounding the ship located by the coordinates x and y
+ * @param board
+ * @param x
+ * @param y
+ */
+void floodSurroundings(char** board, unsigned int x, unsigned int y);
+
+/**
+ * Locates a Ship pointed by the variables *x_ini and *y_ini by saving in *x_ini and *y_ini the initial coordinates of the ship
+ * and saving in *x_end and *y_end the final coordinates of the ship.
+ * This function expects correct coordinates.
+ * This function always places the coordinates with lower values in *x_ini and *y_ini
+ **/
+void locateShip(char** board, Position* position_ini, Position* position_end);
 
 /**
  * Locates the limit of the ship pointed by the coordinates x and y and then checks
@@ -115,69 +136,7 @@ char** initializeBoardWithShipsManual();
  * @param y
  * @return
  */
-bool isSunk(char** board, unsigned int x, unsigned int y);
-
-
-/**
- * Fills with water all the positions surrounding the ship located by the coordinates x and y
- * @param board
- * @param x
- * @param y
- */
-void floodSurroundings(char** board, unsigned int x, unsigned int y);
-
-
-/**
- * Prints the board given by parameter.
- * @param board
- */
-void showBoard(char** board);
-
-
-/**
- * This functions updates the ship board with a shoot on a certain cell and informs the result of the shot:
- *  - Repeated cell (0)
- *  - Water (1)
- *  - Shot (2)
- *  - Shot & Sunk (3)
- * @param board
- * @param x
- * @param y
- * @return
- */
-unsigned int shoot(char** board, unsigned int x, unsigned int y);
-
-
-/**
- * Returns two coordinates representing a cell that has been targeted as the next shot.
- * This function tries to optimize the number of calls needed to this function in order to finish the game as soon
- * as possible.
- *
- * Static parameters:
- * static unsigned int state;
- * static unsigned int tried_state;
- *
- * @param board
- * @param dim
- */
-void computeNextMovement(char** board, unsigned int* x, unsigned int* y, int result_last_shot);
-
-
-/**
- * Calculates the final points for the info of the shoots of a certain player.
- * @param tableResultMoves
- * @return
- */
-int calculateScore(DoubleLinkedList tableResultMoves);
-
-
-/**
- * Locates a Ship pointed by the variables *x_ini and *y_ini by saving in *x_ini and *y_ini the initial coordinates of the ship
- * and saving in *x_end and *y_end the final coordinates of the ship.
- * This function expects correct coordinates.
- * This function always places the coordinates with lower values in *x_ini and *y_ini
- **/ 
-void locateShip(char** board, unsigned int* x_ini, unsigned int* y_ini, unsigned int* x_end, unsigned int* y_end);
+bool isSunk(char** board, Position position);
 
 /**
  * Returns true if the ship specified by parameters does not collide wth any elements of the given board.
@@ -193,18 +152,44 @@ void locateShip(char** board, unsigned int* x_ini, unsigned int* y_ini, unsigned
  */
 bool doesFit(char** defense_board, unsigned int x_ini, unsigned int y_ini, unsigned int* x_end, unsigned int* y_end, unsigned int ship_size, bool orientation);
 
-
+/**
+ * This functions updates the ship board with a shoot on a certain cell and informs the result of the shot:
+ *  - Repeated cell (0)
+ *  - Water (1)
+ *  - Shot (2)
+ *  - Shot & Sunk (3)
+ * @param board
+ * @param position
+ * @return
+ */
+unsigned int shoot(char** board, Position position);
 
 /**
- * Initializes a new ship in the board given its begin and end positions
- * @param defense_board
- * @param x_ini
- * @param y_ini
- * @param x_end
- * @param y_end
+ * Returns two coordinates representing a cell that has been targeted as the next shot.
+ * This function tries to optimize the number of calls needed to this function in order to finish the game as soon
+ * as possible.
+ *
+ * Static parameters:
+ * static unsigned int state;
+ * static unsigned int tried_state;
+ *
+ * @param board
+ * @param dim
  */
-void initializeShip(char** defense_board, unsigned int x_ini, unsigned int y_ini, unsigned int x_end, unsigned int y_end);
+void computeNextMovement(char** board, unsigned int* x, unsigned int* y, int result_last_shot);
 
+/**
+ * Calculates the final points for the info of the shoots of a certain player.
+ * @param tableResultMoves
+ * @return
+ */
+int calculateScore(DoubleLinkedList tableResultMoves);
+
+/**
+ * Prints the board given by parameter.
+ * @param board
+ */
+void showBoard(char** board);
 
 /**
  * Retrieves records from binary file and fills in the records List

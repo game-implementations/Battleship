@@ -2,6 +2,14 @@
 
 unsigned int DIM = 10;
 
+
+// PROCEDURE-LIKE (STATIC) FUNCTIONS
+void** bulletproof_input(size_t type, void* read_variable)
+{
+
+}
+
+
 unsigned int naturalLog(unsigned int x, unsigned int base)
 {
     unsigned int nlog = 0;
@@ -19,181 +27,8 @@ void pause()
     }
 }
 
-void showBoard(char** board)
-{
-    unsigned int DIM_num_digits = naturalLog(DIM, 10) + 1;
 
-    // Begin printing board in new line
-	printf("\n");
-    // Before printing the columns (A, B, C...) print as many spaces as the number of digits that DIM has + 1 for the
-    // separation
-	for (unsigned int i = 0; i < DIM_num_digits + 1; i++)
-	    printf(" ");
-
-    // Print the columns, starting from A
-	for (unsigned int i = 0; i < DIM; i++)
-	{
-		printf("%c", 'A' + i);
-	}
-
-    // For each row
-	for (unsigned int j = 0; j < DIM; j++)
-	{
-        // Begin in a new line and print the current row j as number
-		printf("\n%i", j + 1);
-        // Compute how many digits has the current row number
-		unsigned int current_row_num_digits = naturalLog(j + 1, 10) + 1;
-        // Print as many spaces as needed to reach the num digits of DIM knowing the num digits of the current row num
-        for (unsigned int i = 0; i < (DIM_num_digits - current_row_num_digits) + 1; i++)
-        {
-            printf(" ");
-        }
-        // After the spaces print the board content
-		for (unsigned int i = 0; i < DIM; i++)
-		{
-			printf("%c", board[i][j]);
-		}
-	}
-    // End with newline
-	printf("\n");
-}
-
-void locateShip(char** board, unsigned int* x_ini, unsigned int* y_ini, unsigned int* x_end, unsigned int* y_end)
-{
-    *x_end = *x_ini;
-    *y_end = *y_ini;
-    int x_init = *x_ini, y_init = *y_ini;
-
-    while (*x_end < DIM && (board[*x_end][*y_end] == SHIP || board[*x_end][*y_end] == SHOT_SHIP))
-        (*x_end)++;
-    (*x_end)--;
-
-    while (*y_end < DIM && (board[*x_end][*y_end] == SHIP || board[*x_end][*y_end] == SHOT_SHIP))
-        (*y_end)++;
-    (*y_end)--;
-
-    while (x_init >= 0 && (board[x_init][*y_ini] == SHIP || board[x_init][*y_ini] == SHOT_SHIP))
-        x_init--;
-    x_init++;
-
-    while (y_init >= 0 && (board[*x_ini][y_init] == SHIP || board[*x_ini][y_init] == SHOT_SHIP))
-        y_init--;
-    y_init++;
-
-
-    *x_ini = x_init;
-    *y_ini = y_init;
-}
-
-void floodSurroundings(char** board, unsigned int x, unsigned int y)
-{
-    unsigned int x_ini = x, y_ini = y, x_end, y_end;
-
-    locateShip(board, &x_ini, &y_ini, &x_end, &y_end);
-
-    if (x_ini > 0) x_ini--;
-    if (y_ini > 0) y_ini--;
-    if (x_end < DIM - 1) x_end++;
-    if (y_end < DIM - 1) y_end++;
-
-    for (unsigned int i = x_ini; i <= x_end; i++)
-    {
-        for (unsigned int j = y_ini; j <= y_end; j++)
-        {
-            if (board[i][j] != SHOT_SHIP && board[i][j] != SHIP) board[i][j] = WATER;
-        }
-    }
-}
-
-unsigned int shoot(char** board, unsigned int x, unsigned int y)
-{
-    switch (board[x][y])
-    {
-        case SHOT_WATER:
-        {
-            return 0;
-        }
-        case WATER:
-        {
-            board[x][y] = SHOT_WATER;
-            return 1;
-        }
-        case SHIP:
-        {
-            board[x][y] = SHOT_SHIP;
-            if (isSunk(board, x, y))
-                return 3;
-            else
-                return 2;
-        }
-        default:
-        {
-            return -1;
-        }
-    }
-}
-
-bool isSunk(char** board, unsigned int x, unsigned int y)
-{
-    unsigned int x_ini = x, y_ini = y, x_end, y_end;
-    locateShip(board, &x_ini, &y_ini, &x_end, &y_end);
-    for (unsigned int i = x_ini; i <= x_end; i++)
-    {
-        for (unsigned int j = y_ini; j <= y_end; j++)
-        {
-            if (board[i][j] == SHIP) return false;
-        }
-    }
-    return true;
-}
-
-bool doesFit(char** defense_board, unsigned int x_ini, unsigned int y_ini, unsigned int* x_end, unsigned int* y_end, unsigned int ship_size, bool orientation)
-{
-    if (ship_size > 1)
-    {
-        if (orientation)
-        {
-            (*x_end) = x_ini + ship_size - 1;
-            (*y_end) = y_ini;
-        }
-        else
-        {
-            (*y_end) = y_ini + ship_size - 1;
-            (*x_end) = x_ini;
-        }
-    }
-    else
-    {
-        (*x_end) = x_ini;
-        (*y_end) = y_ini;
-    }
-
-    // If we go out of bounds of the board when calculating the limits
-    if (*x_end >= DIM || *y_end >= DIM) return false;
-
-    for (unsigned int i = x_ini; i <= (*x_end); i++)
-    {
-        for (unsigned int j = y_ini; j <= (*y_end); j++)
-        {
-            //printf("%i %i\n", i, j);  TODO
-            if (defense_board[i][j] != NOT_DISCOVERED_CELL) return false;
-        }
-    }
-    return true;
-}
-
-
-void initializeShip(char** defense_board, unsigned int x_ini, unsigned int y_ini, unsigned int x_end, unsigned int y_end)
-{
-    for (unsigned int i = x_ini; i <= x_end; i++)
-    {
-        for (unsigned int j = y_ini; j <= y_end; j++)
-        {
-            defense_board[i][j] = SHIP;
-        }
-    }
-}
-
+// METHOD-LIKE FUNCTIONS FOR THE BATTLESHIP GAME
 char** reserveBoard()
 {
     // Initialize an array to an array of characters
@@ -213,20 +48,12 @@ void initializeBoard(char** board)
             board[i][j] = NOT_DISCOVERED_CELL;
 }
 
-void initializeBoardWithShipsAuto(char** board)
-{
-    // While the board can not be initialized, keep trying
-    do
-        initializeBoard(board);
-    while (!initializeBoardWithShipsAuto_auxiliar(board));
-
-    // When the board is initialized, substitute not discovered cells with water
-    for (unsigned int i = 0; i < DIM; i++)
-        for (unsigned int j = 0; j < DIM; j++)
-            if (board[i][j] == NOT_DISCOVERED_CELL)
-                board[i][j] = WATER;
-}
-
+/**
+ * Tries to initialize the board with all the ships and returns true if has been initialized correctly and false if the
+ * board is not completely initialized.
+ * @param board game board
+ * @return true if it is correctly initialized and false if is not completely initialized
+ */
 bool initializeBoardWithShipsAuto_auxiliar(char** defense_board)
 {
     unsigned int x_ini, y_ini, x_end, y_end, orientation = 0, number_of_tries;
@@ -270,6 +97,162 @@ bool initializeBoardWithShipsAuto_auxiliar(char** defense_board)
     return true;
 }
 
+void initializeBoardWithShipsAuto(char** board)
+{
+    // While the board can not be initialized, keep trying
+    do
+        initializeBoard(board);
+    while (!initializeBoardWithShipsAuto_auxiliar(board));
+
+    // When the board is initialized, substitute not discovered cells with water
+    for (unsigned int i = 0; i < DIM; i++)
+        for (unsigned int j = 0; j < DIM; j++)
+            if (board[i][j] == NOT_DISCOVERED_CELL)
+                board[i][j] = WATER;
+}
+
+void initializeBoardWithShipsManual(char** board)
+{
+    return;
+}
+
+void initializeShip(char** defense_board, unsigned int x_ini, unsigned int y_ini, unsigned int x_end, unsigned int y_end)
+{
+    for (unsigned int i = x_ini; i <= x_end; i++)
+    {
+        for (unsigned int j = y_ini; j <= y_end; j++)
+        {
+            defense_board[i][j] = SHIP;
+        }
+    }
+}
+
+void floodSurroundings(char** board, unsigned int x, unsigned int y)
+{
+    Position ini, end;
+    ini.x = x;
+    ini.y = y;
+
+    locateShip(board, &ini, &end);
+
+    if (ini.x > 0) ini.x--;
+    if (ini.y > 0) ini.y--;
+    if (end.x < DIM - 1) end.x++;
+    if (end.y < DIM - 1) end.y++;
+
+    for (unsigned int i = ini.x; i <= end.x; i++)
+    {
+        for (unsigned int j = ini.y; j <= end.y; j++)
+        {
+            if (board[i][j] != SHOT_SHIP && board[i][j] != SHIP) board[i][j] = WATER;
+        }
+    }
+}
+
+void locateShip(char** board, Position* position_ini, Position* position_end)
+{
+    // Initialize end with the position of reference
+    position_end->x = position_ini->x;
+    position_end->y = position_ini->y;
+
+    // Move position x end further to the end if a SHIP found
+    while (position_end->x < DIM && (board[position_end->x][position_end->y] == SHIP || board[position_end->x][position_end->y] == SHOT_SHIP))
+        position_end->x++;
+    position_end->x--;
+
+    // Move position y end further to the end if a SHIP found
+    while (position_end->y < DIM && (board[position_end->x][position_end->y] == SHIP || board[position_end->x][position_end->y] == SHOT_SHIP))
+        (position_end->y)++;
+    position_end->y--;
+
+    // Move position x ini further to the beginning if a SHIP found
+    while (position_ini->x >= 0 && (board[position_ini->x][position_ini->y] == SHIP || board[position_ini->x][position_ini->y] == SHOT_SHIP))
+        position_ini->x--;
+    position_ini->x++;
+
+    // Move position y ini further to the beginning if a SHIP found
+    while (position_ini->y >= 0 && (board[position_ini->x][position_ini->y] == SHIP || board[position_ini->x][position_ini->y] == SHOT_SHIP))
+        position_ini->y--;
+    position_ini->y++;
+}
+
+bool isSunk(char** board, Position position)
+{
+    Position end;
+
+    locateShip(board, &position, &end);
+    for (unsigned int i = position.x; i <= end.x; i++)
+    {
+        for (unsigned int j = position.y; j <= end.y; j++)
+        {
+            if (board[i][j] == SHIP) return false;
+        }
+    }
+    return true;
+}
+
+bool doesFit(char** defense_board, unsigned int x_ini, unsigned int y_ini, unsigned int* x_end, unsigned int* y_end, unsigned int ship_size, bool orientation)
+{
+    if (ship_size > 1)
+    {
+        if (orientation)
+        {
+            (*x_end) = x_ini + ship_size - 1;
+            (*y_end) = y_ini;
+        }
+        else
+        {
+            (*y_end) = y_ini + ship_size - 1;
+            (*x_end) = x_ini;
+        }
+    }
+    else
+    {
+        (*x_end) = x_ini;
+        (*y_end) = y_ini;
+    }
+
+    // If we go out of bounds of the board when calculating the limits
+    if (*x_end >= DIM || *y_end >= DIM) return false;
+
+    for (unsigned int i = x_ini; i <= (*x_end); i++)
+    {
+        for (unsigned int j = y_ini; j <= (*y_end); j++)
+        {
+            //printf("%i %i\n", i, j);  TODO
+            if (defense_board[i][j] != NOT_DISCOVERED_CELL) return false;
+        }
+    }
+    return true;
+}
+
+unsigned int shoot(char** board, Position position)
+{
+    switch (board[position.x][position.y])
+    {
+        case SHOT_WATER:
+        {
+            return 0;
+        }
+        case WATER:
+        {
+            board[position.x][position.y] = SHOT_WATER;
+            return 1;
+        }
+        case SHIP:
+        {
+            board[position.x][position.y] = SHOT_SHIP;
+            if (isSunk(board, position))
+                return 3;
+            else
+                return 2;
+        }
+        default:
+        {
+            return -1;
+        }
+    }
+}
 
 void computeNextMovement(char** board, unsigned int* x, unsigned int* y, int result_last_shot)
 {
@@ -283,6 +266,66 @@ void computeNextMovement(char** board, unsigned int* x, unsigned int* y, int res
         }
     }
 }
+
+int calculateScore(DoubleLinkedList tableResultMoves)
+{
+    return 0;
+}
+
+
+void showBoard(char** board)
+{
+    // Obtain the number of digits of DIM
+    unsigned int DIM_num_digits = naturalLog(DIM, 10) + 1;
+
+    // Begin printing board in new line
+	printf("\n");
+
+    // Before printing the columns (A, B, C...) print as many spaces as the number of digits that DIM has + 1 for the
+    // separation
+	for (unsigned int i = 0; i < DIM_num_digits + 1; i++)
+	    printf(" ");
+
+    // Print the columns row, starting from A
+	for (unsigned int i = 0; i < DIM; i++)
+		printf("%c", 'A' + i);
+
+    // For each row
+	for (unsigned int j = 0; j < DIM; j++)
+	{
+        // Begin in a new line and print the current row j as number
+		printf("\n%i", j + 1);
+        // Compute how many digits has the current row number
+		unsigned int current_row_num_digits = naturalLog(j + 1, 10) + 1;
+        // Print as many spaces as needed to reach the num digits of DIM knowing the num digits of the current row num
+        for (unsigned int i = 0; i < DIM_num_digits - current_row_num_digits + 1; i++)
+            printf(" ");
+
+        // After the spaces print the board content
+		for (unsigned int i = 0; i < DIM; i++)
+			printf("%c", board[i][j]);
+	}
+    // End with newline
+	printf("\n");
+}
+
+void loadRecords(DoubleLinkedList* records)
+{
+
+}
+
+void saveRecords(DoubleLinkedList records)
+{
+
+}
+
+
+
+
+
+
+
+
 
 
 int main(int nargs, char* args[])

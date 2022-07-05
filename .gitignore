@@ -54,3 +54,4 @@ dkms.conf
 # Own gitignore rules
 .idea
 Battleship*
+DoubleLinkedList*
