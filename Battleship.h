@@ -109,15 +109,14 @@ void initializeBoardWithShipsManual(char** board);
  * @param x_end
  * @param y_end
  */
-void initializeShip(char** defense_board, unsigned int x_ini, unsigned int y_ini, unsigned int x_end, unsigned int y_end);
+void initializeShip(char** defense_board, Position position, unsigned int ship_size, bool orientation);
 
 /**
  * Fills with water all the positions surrounding the ship located by the coordinates x and y
  * @param board
- * @param x
- * @param y
+ * @param shipPosition
  */
-void floodSurroundings(char** board, unsigned int x, unsigned int y);
+void floodSurroundings(char** board, Position shipPosition);
 
 /**
  * Locates a Ship pointed by the variables *x_ini and *y_ini by saving in *x_ini and *y_ini the initial coordinates of the ship
@@ -132,8 +131,7 @@ void locateShip(char** board, Position* position_ini, Position* position_end);
  * if all the positions of the ship are shot, then return true; otherwise false
  * @param board
  * @param dim
- * @param x
- * @param y
+ * @param position
  * @return
  */
 bool isSunk(char** board, Position position);
@@ -142,15 +140,12 @@ bool isSunk(char** board, Position position);
  * Returns true if the ship specified by parameters does not collide wth any elements of the given board.
  * It also returns the computed end position of the ship
  * @param defense_board
- * @param x_ini
- * @param y_ini
- * @param x_end
- * @param y_end
+ * @param position
  * @param ship_size
  * @param orientation
  * @return
  */
-bool doesFit(char** defense_board, unsigned int x_ini, unsigned int y_ini, unsigned int* x_end, unsigned int* y_end, unsigned int ship_size, bool orientation);
+bool doesFit(char** defense_board, Position position, unsigned int ship_size, bool orientation);
 
 /**
  * This functions updates the ship board with a shoot on a certain cell and informs the result of the shot:
@@ -176,7 +171,7 @@ unsigned int shoot(char** board, Position position);
  * @param board
  * @param dim
  */
-void computeNextMovement(char** board, unsigned int* x, unsigned int* y, int result_last_shot);
+void computeNextMovement(char** board, Position* position, int result_last_shot);
 
 /**
  * Calculates the final points for the info of the shoots of a certain player.

@@ -6,7 +6,7 @@ unsigned int DIM = 10;
 // PROCEDURE-LIKE (STATIC) FUNCTIONS
 void** bulletproof_input(size_t type, void* read_variable)
 {
-
+  return 0;
 }
 
 
@@ -56,7 +56,8 @@ void initializeBoard(char** board)
  */
 bool initializeBoardWithShipsAuto_auxiliar(char** defense_board)
 {
-    unsigned int x_ini, y_ini, x_end, y_end, orientation = 0, number_of_tries;
+    Position ini;
+    unsigned int orientation = 0, number_of_tries;
 
     // Loop through each ship size
     for (unsigned int ship_size = 1; ship_size <= SHIP_MAX_SIZE; ship_size++)
@@ -69,17 +70,16 @@ bool initializeBoardWithShipsAuto_auxiliar(char** defense_board)
             while (true)
             {
                 // Generate random position and orientation to put the current ship
-                x_ini = rand() % DIM;
-                y_ini = rand() % DIM;
+                ini.x = rand() % DIM;
+                ini.y = rand() % DIM;
                 if (ship_size > 1)
-                {
                     orientation = rand() % 2;
-                }
+
                 // If it does fit, put it and go to the next ship
-                if (doesFit(defense_board, x_ini, y_ini, &x_end, &y_end, ship_size, orientation))
+                if (doesFit(defense_board, ini, ship_size, orientation))
                 {
-                    initializeShip(defense_board, x_ini, y_ini, x_end, y_end);
-                    floodSurroundings(defense_board, x_ini, y_ini);
+                    initializeShip(defense_board, ini, ship_size, orientation);
+                    floodSurroundings(defense_board, ini);
                     break;
                 }
                 else  // If it does not fit, annotate another try. If we go through the max tries values, return false
@@ -91,7 +91,6 @@ bool initializeBoardWithShipsAuto_auxiliar(char** defense_board)
                     }
                 }
             }
-
         }
     }
     return true;
@@ -116,37 +115,44 @@ void initializeBoardWithShipsManual(char** board)
     return;
 }
 
-void initializeShip(char** defense_board, unsigned int x_ini, unsigned int y_ini, unsigned int x_end, unsigned int y_end)
+void initializeShip(char** defense_board, Position ini, unsigned int ship_size, bool orientation)
 {
-    for (unsigned int i = x_ini; i <= x_end; i++)
+    Position end;
+    if (orientation)
     {
-        for (unsigned int j = y_ini; j <= y_end; j++)
+        end.x = ini.x + ship_size - 1;
+        end.y = ini.y;
+    }
+    else
+    {
+        end.y = ini.y + ship_size - 1;
+        end.x = ini.x;
+    }
+
+    for (unsigned int i = ini.x; i <= end.x; i++)
+    {
+        for (unsigned int j = ini.y; j <= end.y; j++)
         {
             defense_board[i][j] = SHIP;
         }
     }
 }
 
-void floodSurroundings(char** board, unsigned int x, unsigned int y)
+void floodSurroundings(char** board, Position position)
 {
-    Position ini, end;
-    ini.x = x;
-    ini.y = y;
+    Position end;
 
-    locateShip(board, &ini, &end);
+    locateShip(board, &position, &end);
 
-    if (ini.x > 0) ini.x--;
-    if (ini.y > 0) ini.y--;
+    if (position.x > 0) position.x--;
+    if (position.y > 0) position.y--;
     if (end.x < DIM - 1) end.x++;
     if (end.y < DIM - 1) end.y++;
 
-    for (unsigned int i = ini.x; i <= end.x; i++)
-    {
-        for (unsigned int j = ini.y; j <= end.y; j++)
-        {
-            if (board[i][j] != SHOT_SHIP && board[i][j] != SHIP) board[i][j] = WATER;
-        }
-    }
+    for (unsigned int i = position.x; i <= end.x; i++)
+        for (unsigned int j = position.y; j <= end.y; j++)
+            if (board[i][j] != SHOT_SHIP && board[i][j] != SHIP)
+                board[i][j] = WATER;
 }
 
 void locateShip(char** board, Position* position_ini, Position* position_end)
@@ -182,47 +188,38 @@ bool isSunk(char** board, Position position)
 
     locateShip(board, &position, &end);
     for (unsigned int i = position.x; i <= end.x; i++)
-    {
         for (unsigned int j = position.y; j <= end.y; j++)
-        {
             if (board[i][j] == SHIP) return false;
-        }
-    }
+
     return true;
 }
 
-bool doesFit(char** defense_board, unsigned int x_ini, unsigned int y_ini, unsigned int* x_end, unsigned int* y_end, unsigned int ship_size, bool orientation)
+bool doesFit(char** defense_board, Position ini, unsigned int ship_size, bool orientation)
 {
-    if (ship_size > 1)
+    Position end;
+
+    // Compute theoretical limits
+    if (orientation)
     {
-        if (orientation)
-        {
-            (*x_end) = x_ini + ship_size - 1;
-            (*y_end) = y_ini;
-        }
-        else
-        {
-            (*y_end) = y_ini + ship_size - 1;
-            (*x_end) = x_ini;
-        }
+        end.x = ini.x + ship_size - 1;
+        end.y = ini.y;
     }
     else
     {
-        (*x_end) = x_ini;
-        (*y_end) = y_ini;
+        end.y = ini.y + ship_size - 1;
+        end.x = ini.x;
     }
 
-    // If we go out of bounds of the board when calculating the limits
-    if (*x_end >= DIM || *y_end >= DIM) return false;
+    // If we went out of bounds of the board when calculating the limits does not fit
+    if (end.x >= DIM || end.y >= DIM)
+        return false;
 
-    for (unsigned int i = x_ini; i <= (*x_end); i++)
-    {
-        for (unsigned int j = y_ini; j <= (*y_end); j++)
-        {
-            //printf("%i %i\n", i, j);  TODO
-            if (defense_board[i][j] != NOT_DISCOVERED_CELL) return false;
-        }
-    }
+    // If there are any occupied cells in the limits it does not fit
+    for (unsigned int i = ini.x; i <= end.x; i++)
+        for (unsigned int j = ini.y; j <= end.y; j++)
+            if (defense_board[i][j] != NOT_DISCOVERED_CELL)
+                return false;
+
     return true;
 }
 
@@ -254,7 +251,7 @@ unsigned int shoot(char** board, Position position)
     }
 }
 
-void computeNextMovement(char** board, unsigned int* x, unsigned int* y, int result_last_shot)
+void computeNextMovement(char** board, Position* position, int result_last_shot)
 {
     static unsigned int state = 0;
     if (result_last_shot == RESULT_SHOT_AND_SUNK) state = 0;
