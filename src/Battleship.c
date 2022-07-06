@@ -277,14 +277,62 @@ unsigned int shoot(char** board, Position position)
     }
 }
 
+void computeNextMovement_auxiliarDetectState(char** attack_board, Position iniCurrentShipPosition, unsigned int* state)
+{
+    Position endCurrentShipPosition;
+    // Now we need to obtain info about orientation
+    unsigned int orientation = detectOrientation(attack_board, iniCurrentShipPosition);
+
+    if (! orientation)
+    {
+        *state = STATE_DESTROY;
+    }
+    else if (orientation == 1)
+    {
+        locateShip(attack_board, &iniCurrentShipPosition, &endCurrentShipPosition);
+        if (endCurrentShipPosition.y == DIM - 1 || attack_board[endCurrentShipPosition.x][endCurrentShipPosition.y + 1] != NOT_DISCOVERED_CELL)
+        {
+            *state = STATE_DOWN;
+        }
+        else if (endCurrentShipPosition.y == 0 || attack_board[endCurrentShipPosition.x][endCurrentShipPosition.y - 1] != NOT_DISCOVERED_CELL)
+        {
+            *state = STATE_UP;
+        }
+        else
+        {
+            *state = STATE_VERTICAL;
+        }
+    }
+    else if (orientation == 2)
+    {
+
+        locateShip(attack_board, &iniCurrentShipPosition, &endCurrentShipPosition);
+        if (endCurrentShipPosition.x == DIM - 1 || attack_board[endCurrentShipPosition.x + 1][endCurrentShipPosition.y] != NOT_DISCOVERED_CELL)
+        {
+            *state = STATE_DOWN;
+        }
+        else if (endCurrentShipPosition.x == 0 || attack_board[endCurrentShipPosition.x - 1][endCurrentShipPosition.y] != NOT_DISCOVERED_CELL)
+        {
+            *state = STATE_UP;
+        }
+        else
+        {
+            *state = STATE_VERTICAL;
+        }
+    }
+}
+
 Position computeNextMovement(char** attack_board, Position lastShotPosition, unsigned int result_last_shot)
 {
     unsigned int state;
-    Position surroundingPositions[4], iniCurrentShipPosition, endCurrentShipPosition;
+    Position surroundingPositions[4], iniCurrentShipPosition;
     unsigned int surroundingPositionsSize = 4;
+
+    // Init the array of surrounding positions
     for (unsigned int i = 0; i < surroundingPositionsSize; i++)
         surroundingPositions[i] = lastShotPosition;
 
+    // Init surrounding positions taking limits into account
     if (surroundingPositions[0].x < DIM - 1)
         surroundingPositions[0].x++;
     if (surroundingPositions[1].y > 0)
@@ -322,19 +370,30 @@ Position computeNextMovement(char** attack_board, Position lastShotPosition, uns
         }
         else
         {
-            // We did find a not destroyed ship in surroundingPositions[i], locateShip
+            // We did find a not destroyed ship in surroundingPositions[i]
             iniCurrentShipPosition = surroundingPositions[i];
-            // Now we need to locate the ship to obtain info about orientation
-            locateShip(attack_board, &iniCurrentShipPosition, &endCurrentShipPosition);
-            if (iniCurrentShipPosition.x == endCurrentShipPosition.x && iniCurrentShipPosition.y == endCurrentShipPosition.y)
-            {
-                // It is an only point discovered,
-
-            }
-
+            computeNextMovement_auxiliarDetectState(attack_board, iniCurrentShipPosition, &state);
         }
+    }
+    else if (result_last_shot == RESULT_SHOT)
+    {
+        computeNextMovement_auxiliarDetectState(attack_board, lastShotPosition, &state);
+    }
 
 
+    // Decide position depending on the state
+    switch (state) {
+        // Generate a random valid cell and continue
+        case STATE_SEEK:
+        {
+            Position result;
+            do
+            {
+                result.x = rand() % DIM;
+                result.y = rand() % DIM;
+            }
+            while (attack_board[result.x][result.y] != NOT_DISCOVERED_CELL);
+        }
     }
 }
 
