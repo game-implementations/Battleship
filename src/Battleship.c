@@ -4,10 +4,7 @@ unsigned int DIM = 10;
 
 
 // PROCEDURE-LIKE (STATIC) FUNCTIONS
-void** bulletproof_input(size_t type, void* read_variable)
-{
-  return 0;
-}
+// void** bulletproof_input(size_t type, void* read_variable) { }
 
 
 unsigned int naturalLog(unsigned int x, unsigned int base)
@@ -87,7 +84,6 @@ bool initializeBoardWithShipsAuto_auxiliar(char** defense_board)
                         return false;
                 }
             }
-            showBoard(defense_board);
         }
     }
     return true;
@@ -107,10 +103,7 @@ void initializeBoardWithShipsAuto(char** board)
                 board[i][j] = WATER;
 }
 
-void initializeBoardWithShipsManual(char** board)
-{
-    return;
-}
+// void initializeBoardWithShipsManual(char** board) { }
 
 void initializeShip(char** defense_board, Position ini, unsigned int ship_size, bool orientation)
 {
@@ -322,25 +315,62 @@ void computeNextMovement_auxiliarDetectState(char** attack_board, Position iniCu
     }
 }
 
+void generateSurroundingPositions(Position iniPosition, Position* surroundingPositions, unsigned int* surroundingPositionsSize)
+{
+    unsigned int surroundingCandidatePositionsLength = 0;
+
+    // Check directions starting from iniPosition
+    if (iniPosition.x < DIM - 1)
+    {
+        surroundingPositions[surroundingCandidatePositionsLength] = iniPosition;
+        surroundingPositions[surroundingCandidatePositionsLength].x++;
+        surroundingCandidatePositionsLength++;
+    }
+    if (iniPosition.y > 0)
+    {
+        surroundingPositions[surroundingCandidatePositionsLength] = iniPosition;
+        surroundingPositions[surroundingCandidatePositionsLength].y--;
+        surroundingCandidatePositionsLength++;
+    }
+    if (iniPosition.x > 0)
+    {
+        surroundingPositions[surroundingCandidatePositionsLength] = iniPosition;
+        surroundingPositions[surroundingCandidatePositionsLength].x--;
+        surroundingCandidatePositionsLength++;
+    }
+    if (iniPosition.y < DIM - 1)
+    {
+        surroundingPositions[surroundingCandidatePositionsLength] = iniPosition;
+        surroundingPositions[surroundingCandidatePositionsLength].y++;
+        surroundingCandidatePositionsLength++;
+    }
+    *surroundingPositionsSize = surroundingCandidatePositionsLength;
+}
+
+
+void discardDiscovered(char** attack_board, Position* surroundingPositions, unsigned int* surroundingPositionsSize)
+{
+    for (unsigned int i = 0; i < *surroundingPositionsSize; i++)
+    {
+        // Discard all discovered cells
+        if (attack_board[surroundingPositions[i].x][surroundingPositions[i].y] != NOT_DISCOVERED_CELL)
+        {
+            // Compact the array to discard discovered cells
+            for (unsigned int j = i; j < *surroundingPositionsSize + 1; j++)
+            {
+                surroundingPositions[j] = surroundingPositions[j + 1];
+            }
+            (*surroundingPositionsSize)--;
+        }
+    }
+}
+
+
+
 Position computeNextMovement(char** attack_board, Position lastShotPosition, unsigned int result_last_shot)
 {
-    unsigned int state;
+    unsigned int state, surroundingCandidatePositionsLength;
     Position surroundingPositions[4], iniCurrentShipPosition;
-    unsigned int surroundingPositionsSize = 4;
-
-    // Init the array of surrounding positions
-    for (unsigned int i = 0; i < surroundingPositionsSize; i++)
-        surroundingPositions[i] = lastShotPosition;
-
-    // Init surrounding positions taking limits into account
-    if (surroundingPositions[0].x < DIM - 1)
-        surroundingPositions[0].x++;
-    if (surroundingPositions[1].y > 0)
-        surroundingPositions[1].y--;
-    if (surroundingPositions[2].x > 0)
-        surroundingPositions[2].x--;
-    if (surroundingPositions[3].y < DIM - 1)
-        surroundingPositions[3].y++;
 
     // First detect the previous state from the result
     if (result_last_shot == RESULT_SHOT_AND_SUNK || result_last_shot == RESULT_INITIAL)
@@ -350,39 +380,40 @@ Position computeNextMovement(char** attack_board, Position lastShotPosition, uns
     }
     else if (result_last_shot == RESULT_WATER)
     {
+        // Get surrounding positions from the last shot, so we can find the current ship
+        generateSurroundingPositions(lastShotPosition, surroundingPositions, &surroundingCandidatePositionsLength);
 
         // We need to check the four surrounding cells for a shot but not sunk ship
         unsigned int i = 0;
-        while (i < 4
-        && (
-                (surroundingPositions[i].x == lastShotPosition.x && surroundingPositions[i].y == lastShotPosition.y)
-        || (attack_board[surroundingPositions[i].x][surroundingPositions[i].y] == WATER || attack_board[surroundingPositions[i].x][surroundingPositions[i].y] == SHOT_WATER)
-        || (attack_board[surroundingPositions[i].x][surroundingPositions[i].y] == SHOT_SHIP && isSunk(attack_board,  surroundingPositions[i]))
-        )
-        )
+        while ((i < surroundingCandidatePositionsLength) && ((attack_board[surroundingPositions[i].x][surroundingPositions[i].y] == WATER || attack_board[surroundingPositions[i].x][surroundingPositions[i].y] == SHOT_WATER) || (attack_board[surroundingPositions[i].x][surroundingPositions[i].y] == SHOT_SHIP && isSunk(attack_board,  surroundingPositions[i]))))
         {
             i++;
         }
         // If we arrived to the end it means we did not find a surrounding ship
-        if (i == surroundingPositionsSize)
+        if (i == surroundingCandidatePositionsLength)
         {
             state = STATE_SEEK;
         }
         else
         {
-            // We did find a not destroyed ship in surroundingPositions[i]
+            // We did find a not destroyed ship in surroundingPositions[i], detect state from that ship
             iniCurrentShipPosition = surroundingPositions[i];
             computeNextMovement_auxiliarDetectState(attack_board, iniCurrentShipPosition, &state);
         }
     }
     else if (result_last_shot == RESULT_SHOT)
     {
+        // Detect state using the position of the last shot ship
         computeNextMovement_auxiliarDetectState(attack_board, lastShotPosition, &state);
+        // We are already in a ship, so the iniCurrentShipPosition will be the lastShotPosition
+        iniCurrentShipPosition = lastShotPosition;
     }
 
 
+    // At this point iniCurrentShipPosition points to a not sunk ship
     // Decide position depending on the state
     switch (state) {
+
         // Generate a random valid cell and continue
         case STATE_SEEK:
         {
@@ -393,14 +424,124 @@ Position computeNextMovement(char** attack_board, Position lastShotPosition, uns
                 result.y = rand() % DIM;
             }
             while (attack_board[result.x][result.y] != NOT_DISCOVERED_CELL);
+            return result;
+        }
+
+        // In this state we need to choose randomly between one of the valid surrounding positions
+        case STATE_DESTROY:
+        {
+            // Get surrounding positions from the visible point of the ship. We can reuse variables
+            generateSurroundingPositions(iniCurrentShipPosition, surroundingPositions, &surroundingCandidatePositionsLength);
+            // Discard the discovered cells
+            discardDiscovered(attack_board, surroundingPositions, &surroundingCandidatePositionsLength);
+            // Return a random surrounding not discovered position
+            return surroundingPositions[rand() % surroundingCandidatePositionsLength];
+        }
+
+        // We need to choose between the up or down position of the ship.
+        case STATE_VERTICAL:
+        {
+            // Generate down position
+            surroundingPositions[0] = iniCurrentShipPosition;
+            do
+            {
+                surroundingPositions[0].y--;
+            }
+            while (attack_board[surroundingPositions[0].x][surroundingPositions[0].y] == SHOT_SHIP);
+
+            // Generate up position
+            surroundingPositions[1] = iniCurrentShipPosition;
+            do
+            {
+                surroundingPositions[1].y++;
+            }
+            while (attack_board[surroundingPositions[1].x][surroundingPositions[1].y] == SHOT_SHIP);
+
+            // Choose randomly between the two positions
+            return surroundingPositions[rand() % 2];
+        }
+
+        // We need to choose between the left or right position of the ship.
+        case STATE_HORIZONTAL:
+        {
+            // Generate left position
+            surroundingPositions[0] = iniCurrentShipPosition;
+            do
+            {
+                surroundingPositions[0].x--;
+            }
+            while (attack_board[surroundingPositions[0].x][surroundingPositions[0].y] == SHOT_SHIP);
+
+            // Generate right position
+            surroundingPositions[1] = iniCurrentShipPosition;
+            do
+            {
+                surroundingPositions[1].x++;
+            }
+            while (attack_board[surroundingPositions[1].x][surroundingPositions[1].y] == SHOT_SHIP);
+
+            // Choose randomly between the two positions
+            return surroundingPositions[rand() % 2];
+        }
+
+        // We need to generate the most right position
+        case STATE_RIGHT:
+        {
+            do
+            {
+                iniCurrentShipPosition.x++;
+            }
+            while (attack_board[iniCurrentShipPosition.x][iniCurrentShipPosition.y] == SHOT_SHIP);
+
+            return iniCurrentShipPosition;
+        }
+
+        // We need to generate the most left position
+        case STATE_LEFT:
+        {
+            do
+            {
+                iniCurrentShipPosition.x--;
+            }
+            while (attack_board[iniCurrentShipPosition.x][iniCurrentShipPosition.y] == SHOT_SHIP);
+
+            return iniCurrentShipPosition;
+        }
+
+        // We need to generate the most down position
+        case STATE_DOWN:
+        {
+            do
+            {
+                iniCurrentShipPosition.y--;
+            }
+            while (attack_board[iniCurrentShipPosition.x][iniCurrentShipPosition.y] == SHOT_SHIP);
+
+            return iniCurrentShipPosition;
+        }
+
+        // We need to generate the most up position
+        case STATE_UP:
+        {
+            do
+            {
+                iniCurrentShipPosition.y++;
+            }
+            while (attack_board[iniCurrentShipPosition.x][iniCurrentShipPosition.y] == SHOT_SHIP);
+
+            return iniCurrentShipPosition;
+        }
+
+        default:
+        {
+            iniCurrentShipPosition.x = 0;
+            iniCurrentShipPosition.y = 0;
+            return iniCurrentShipPosition;
         }
     }
 }
 
-int calculateScore(DoubleLinkedList tableResultMoves)
-{
-    return 0;
-}
+// int calculateScore(DoubleLinkedList tableResultMoves) { }
 
 
 void showBoard(char** board)
@@ -439,15 +580,9 @@ void showBoard(char** board)
 	printf("\n");
 }
 
-void loadRecords(DoubleLinkedList* records)
-{
+// void loadRecords(DoubleLinkedList* records) { }
 
-}
-
-void saveRecords(DoubleLinkedList records)
-{
-
-}
+// void saveRecords(DoubleLinkedList records) { }
 
 
 
@@ -458,14 +593,29 @@ void saveRecords(DoubleLinkedList records)
 
 
 
-int main(int nargs, char* args[])
+int main()
 {
     srand(time(NULL));
 
-    char** board = reserveBoard();
+    char** defense_board = reserveBoard();
+    char** attack_board = reserveBoard();
+    initializeBoard(attack_board);
+    initializeBoardWithShipsAuto(defense_board);
 
-    initializeBoardWithShipsAuto(board);
 
-    showBoard(board);
+    unsigned int shot_ships = 0;
+    unsigned int num_ships = 9;
+    Position lastShot;
+    unsigned int lastResult = RESULT_INITIAL;
+    do
+    {
+        showBoard(defense_board);
+        pause();
+        lastShot = computeNextMovement(attack_board, lastShot, lastResult);
+        lastResult = shoot(defense_board, lastShot);
+        if (lastResult == RESULT_SHOT_AND_SUNK)
+            shot_ships++;
+    }
+    while (shot_ships < num_ships);
 }
 
