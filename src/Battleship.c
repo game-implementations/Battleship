@@ -202,9 +202,9 @@ bool isSunk(char** board, Position position)
     if (end.y < DIM - 1)
         end.y++;
 
-    for (unsigned int i = position.x; i < end.x; i++)
+    for (unsigned int i = position.x; i <= end.x; i++)
     {
-        for (unsigned int j = position.y; j < end.y; j++)
+        for (unsigned int j = position.y; j <= end.y; j++)
         {
             if (board[i][j] == NOT_DISCOVERED_CELL || board[i][j] == SHIP)
                 return false;
@@ -286,11 +286,11 @@ void computeNextMovement_auxiliarDetectState(char** attack_board, Position iniCu
         locateShip(attack_board, &iniCurrentShipPosition, &endCurrentShipPosition);
         if (endCurrentShipPosition.y == DIM - 1 || attack_board[endCurrentShipPosition.x][endCurrentShipPosition.y + 1] != NOT_DISCOVERED_CELL)
         {
-            *state = STATE_UP;
+            *state = STATE_DOWN;
         }
         else if (endCurrentShipPosition.y == 0 || attack_board[endCurrentShipPosition.x][endCurrentShipPosition.y - 1] != NOT_DISCOVERED_CELL)
         {
-            *state = STATE_DOWN;
+            *state = STATE_UP;
         }
         else
         {
@@ -303,11 +303,11 @@ void computeNextMovement_auxiliarDetectState(char** attack_board, Position iniCu
         locateShip(attack_board, &iniCurrentShipPosition, &endCurrentShipPosition);
         if (endCurrentShipPosition.x == DIM - 1 || attack_board[endCurrentShipPosition.x + 1][endCurrentShipPosition.y] != NOT_DISCOVERED_CELL)
         {
-            *state = STATE_RIGHT;
+            *state = STATE_LEFT;
         }
         else if (endCurrentShipPosition.x == 0 || attack_board[endCurrentShipPosition.x - 1][endCurrentShipPosition.y] != NOT_DISCOVERED_CELL)
         {
-            *state = STATE_LEFT;
+            *state = STATE_RIGHT;
         }
         else
         {
@@ -351,25 +351,37 @@ void generateSurroundingPositions(Position iniPosition, Position* surroundingPos
 
 void discardDiscovered(char** attack_board, Position* surroundingPositions, unsigned int* surroundingPositionsSize)
 {
+    printf("\n%i surroudn pos", *surroundingPositionsSize);
+
+    Position result[*surroundingPositionsSize];
+    unsigned int resultSize = 0;
+
+    // Loop through all the positions and add the not discovered to a temporal array.
     for (unsigned int i = 0; i < *surroundingPositionsSize; i++)
     {
         // Discard all discovered cells
-        if (attack_board[surroundingPositions[i].x][surroundingPositions[i].y] != NOT_DISCOVERED_CELL)
+        if (attack_board[surroundingPositions[i].x][surroundingPositions[i].y] == NOT_DISCOVERED_CELL)
         {
-            // Compact the array to discard discovered cells
-            for (unsigned int j = i; j < *surroundingPositionsSize + 1; j++)
-            {
-                surroundingPositions[j] = surroundingPositions[j + 1];
-            }
-            (*surroundingPositionsSize)--;
+            result[resultSize] = surroundingPositions[i];
+            resultSize++;
         }
     }
+
+    // Fill the array and the integer of the num elements
+    for (unsigned int i = 0; i < resultSize; i++)
+    {
+        surroundingPositions[i] = result[i];
+    }
+    *surroundingPositionsSize = resultSize;
+    printf("\n%i surroudn pos after", *surroundingPositionsSize);
+
 }
 
 
 
 Position computeNextMovement(char** attack_board, Position lastShotPosition, unsigned int result_last_shot)
 {
+    printf("\n\nComputing next movement");  //TODO
     unsigned int state, surroundingCandidatePositionsLength;
     Position surroundingPositions[4], iniCurrentShipPosition;
 
@@ -384,19 +396,30 @@ Position computeNextMovement(char** attack_board, Position lastShotPosition, uns
         // Get surrounding positions from the last shot, so we can find the current ship
         generateSurroundingPositions(lastShotPosition, surroundingPositions, &surroundingCandidatePositionsLength);
 
+        // TODO
+        for (unsigned int i = 0; i < surroundingCandidatePositionsLength; i++)
+        {
+            printf("\npositions (%i, %i) state: %c", surroundingPositions[i].x, surroundingPositions[i].y, attack_board[surroundingPositions[i].x][surroundingPositions[i].y]);
+        }
+
         // We need to check the four surrounding cells for a shot but not sunk ship
         unsigned int i = 0;
-        while ((i < surroundingCandidatePositionsLength) && ((attack_board[surroundingPositions[i].x][surroundingPositions[i].y] == WATER || attack_board[surroundingPositions[i].x][surroundingPositions[i].y] == SHOT_WATER) || (attack_board[surroundingPositions[i].x][surroundingPositions[i].y] == SHOT_SHIP && isSunk(attack_board,  surroundingPositions[i]))))
+        while ((i < surroundingCandidatePositionsLength) && ((attack_board[surroundingPositions[i].x][surroundingPositions[i].y] != SHOT_SHIP) || (attack_board[surroundingPositions[i].x][surroundingPositions[i].y] == SHOT_SHIP && isSunk(attack_board,  surroundingPositions[i]))))
         {
             i++;
         }
+
         // If we arrived to the end it means we did not find a surrounding ship
         if (i == surroundingCandidatePositionsLength)
         {
+            printf("\nResult water with %i surrounding length and candidate is position max", surroundingCandidatePositionsLength);  //TODO
+
             state = STATE_SEEK;
         }
         else
         {
+            printf("\nResult water with %i surrounding length and candidate is position %i at (%i, %i)", surroundingCandidatePositionsLength, i, surroundingPositions[i].x, surroundingPositions[i].y);  //TODO
+
             // We did find a not destroyed ship in surroundingPositions[i], detect state from that ship
             iniCurrentShipPosition = surroundingPositions[i];
             computeNextMovement_auxiliarDetectState(attack_board, iniCurrentShipPosition, &state);
@@ -410,6 +433,8 @@ Position computeNextMovement(char** attack_board, Position lastShotPosition, uns
         iniCurrentShipPosition = lastShotPosition;
     }
 
+
+    printf("\nDetected state %i", state); //TODO
 
     // At this point iniCurrentShipPosition points to a not sunk ship
     // Decide position depending on the state
@@ -431,10 +456,32 @@ Position computeNextMovement(char** attack_board, Position lastShotPosition, uns
         // In this state we need to choose randomly between one of the valid surrounding positions
         case STATE_DESTROY:
         {
+            // TODO failing in this case
+
             // Get surrounding positions from the visible point of the ship. We can reuse variables
             generateSurroundingPositions(iniCurrentShipPosition, surroundingPositions, &surroundingCandidatePositionsLength);
+
+            // TODO
+            printf("\nSTATE DESTROY surround pos %i", surroundingCandidatePositionsLength);
+            for (unsigned int i = 0; i < surroundingCandidatePositionsLength; i++)
+            {
+                printf("\npositions nos discovered (%i, %i) state: %c", surroundingPositions[i].x, surroundingPositions[i].y, attack_board[surroundingPositions[i].x][surroundingPositions[i].y]);
+            }
+
+            printf("\nprevious discard discovered");  // TODO
+
             // Discard the discovered cells
             discardDiscovered(attack_board, surroundingPositions, &surroundingCandidatePositionsLength);
+
+            // TODO
+            printf("\nSTATE DESTROY surround pos not discovered %i", surroundingCandidatePositionsLength);  // TODO
+            for (unsigned int i = 0; i < surroundingCandidatePositionsLength; i++)
+            {
+                printf("\npositions nos discovered (%i, %i) state: %c", surroundingPositions[i].x, surroundingPositions[i].y, attack_board[surroundingPositions[i].x][surroundingPositions[i].y]);
+            }
+
+
+
             // Return a random surrounding not discovered position
             return surroundingPositions[rand() % surroundingCandidatePositionsLength];
         }
@@ -605,7 +652,7 @@ int main()
 
 
     unsigned int shot_ships = 0;
-    unsigned int num_ships = 9;
+    unsigned int num_ships = 10;
     Position lastShot;
     lastShot.x = 0;
     lastShot.y = 0;
@@ -615,7 +662,7 @@ int main()
         showBoard(defense_board);
         showBoard(attack_board);
         printf("\nLast shot: (%i, %i), result: %u", lastShot.x, lastShot.y, lastResult);
-        pause();
+        //pause();
         lastShot = computeNextMovement(attack_board, lastShot, lastResult);
         lastResult = shoot(defense_board, lastShot);
         switch(lastResult)
@@ -632,6 +679,7 @@ int main()
             }
             case RESULT_SHOT_AND_SUNK:
             {
+                floodSurroundings(attack_board, lastShot);
                 attack_board[lastShot.x][lastShot.y] = SHOT_SHIP;
                 shot_ships++;
                 break;
@@ -644,5 +692,7 @@ int main()
         }
     }
     while (shot_ships < num_ships);
+    showBoard(defense_board);
+    showBoard(attack_board);
 }
 
