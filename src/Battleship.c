@@ -275,6 +275,7 @@ void computeNextMovement_auxiliarDetectState(char** attack_board, Position iniCu
     Position endCurrentShipPosition;
     // Now we need to obtain info about orientation
     unsigned int orientation = detectOrientation(attack_board, iniCurrentShipPosition);
+    printf("\nDetected orientation %u", orientation);  //TODO
 
     if (! orientation)
     {
@@ -285,11 +286,11 @@ void computeNextMovement_auxiliarDetectState(char** attack_board, Position iniCu
         locateShip(attack_board, &iniCurrentShipPosition, &endCurrentShipPosition);
         if (endCurrentShipPosition.y == DIM - 1 || attack_board[endCurrentShipPosition.x][endCurrentShipPosition.y + 1] != NOT_DISCOVERED_CELL)
         {
-            *state = STATE_DOWN;
+            *state = STATE_UP;
         }
         else if (endCurrentShipPosition.y == 0 || attack_board[endCurrentShipPosition.x][endCurrentShipPosition.y - 1] != NOT_DISCOVERED_CELL)
         {
-            *state = STATE_UP;
+            *state = STATE_DOWN;
         }
         else
         {
@@ -302,15 +303,15 @@ void computeNextMovement_auxiliarDetectState(char** attack_board, Position iniCu
         locateShip(attack_board, &iniCurrentShipPosition, &endCurrentShipPosition);
         if (endCurrentShipPosition.x == DIM - 1 || attack_board[endCurrentShipPosition.x + 1][endCurrentShipPosition.y] != NOT_DISCOVERED_CELL)
         {
-            *state = STATE_DOWN;
+            *state = STATE_RIGHT;
         }
         else if (endCurrentShipPosition.x == 0 || attack_board[endCurrentShipPosition.x - 1][endCurrentShipPosition.y] != NOT_DISCOVERED_CELL)
         {
-            *state = STATE_UP;
+            *state = STATE_LEFT;
         }
         else
         {
-            *state = STATE_VERTICAL;
+            *state = STATE_HORIZONTAL;
         }
     }
 }
@@ -606,15 +607,41 @@ int main()
     unsigned int shot_ships = 0;
     unsigned int num_ships = 9;
     Position lastShot;
+    lastShot.x = 0;
+    lastShot.y = 0;
     unsigned int lastResult = RESULT_INITIAL;
     do
     {
         showBoard(defense_board);
+        showBoard(attack_board);
+        printf("\nLast shot: (%i, %i), result: %u", lastShot.x, lastShot.y, lastResult);
         pause();
         lastShot = computeNextMovement(attack_board, lastShot, lastResult);
         lastResult = shoot(defense_board, lastShot);
-        if (lastResult == RESULT_SHOT_AND_SUNK)
-            shot_ships++;
+        switch(lastResult)
+        {
+            case RESULT_REPEATED_CELL || RESULT_WATER:
+            {
+                attack_board[lastShot.x][lastShot.y] = SHOT_WATER;
+                break;
+            }
+            case RESULT_SHOT:
+            {
+                attack_board[lastShot.x][lastShot.y] = SHOT_SHIP;
+                break;
+            }
+            case RESULT_SHOT_AND_SUNK:
+            {
+                attack_board[lastShot.x][lastShot.y] = SHOT_SHIP;
+                shot_ships++;
+                break;
+            }
+            default:
+            {
+                printf("\nError");
+                return 1;
+            }
+        }
     }
     while (shot_ships < num_ships);
 }
