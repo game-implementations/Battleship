@@ -4,7 +4,71 @@ unsigned int DIM = 10;
 
 
 // PROCEDURE-LIKE (STATIC) FUNCTIONS
-// void** bulletproof_input(size_t type, void* read_variable) { }
+void* bulletproof_input(size_t type, const int* num_elements, char separator)
+{
+    char* in = malloc(sizeof(char) * MAX_READ_CHARACTERS);
+
+    bool read = false;
+
+    do {
+        printf("\nIntroduce %i elements separated with '%c' of type ", *num_elements, separator);
+        switch (type)
+        {
+            case sizeof(char):
+            {
+                printf("char");
+                break;
+            }
+            case sizeof(char*):
+            {
+                printf("char");
+                break;
+            }
+            case sizeof(short int):
+            {
+                printf("short int");
+                break;
+            }
+            case sizeof(int):
+            {
+                printf("int");
+                break;
+            }
+                /*
+                case sizeof(float):
+                {
+                    printf("float (real)");
+                    break;
+                }
+                */
+            case sizeof(double):
+            {
+                printf("double (real)");
+                break;
+            }
+            default:
+            {
+                printf("unknown");
+            }
+        }
+        printf(". End input by pressing Enter: \n> ");
+
+        if (fgets(in, MAX_READ_CHARACTERS, stdin) == NULL)
+        {
+            printf("\nThe input has not been read. Try again:");
+        }
+        else
+        {
+            read = true;
+        }
+    } while (! read);
+
+    // If we are reading chars it does not make sense to do the separation
+    if (sizeof(char) == type)
+    // At this point the string is read
+    char** result;
+
+}
 
 
 unsigned int naturalLog(unsigned int x, unsigned int base)

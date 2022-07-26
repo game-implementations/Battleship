@@ -37,8 +37,10 @@
 #define STATE_MASK_DIRECTION 0x01
 
 // Magic numbers
+// Number of tries when fitting a ship into the board before reinitializing the board again
 #define AUTO_SHIP_PLACEMENT_MAX_TRIES 100000
-
+// Maximum number of elements in an input array
+#define MAX_READ_CHARACTERS 1000
 
 // CONSTANT VALUES
 /**
@@ -49,9 +51,7 @@
 const unsigned char NUM_SHIPS_BY_SIZE[] = {4, 3, 2, 1};
 const unsigned char SHIP_MAX_SIZE = 4;
 
-
 // TYPE DEFINITION
-
 typedef struct Position {
     unsigned int x;
     unsigned int y;
@@ -84,9 +84,9 @@ extern unsigned int DIM;  // Contains the dimension of the board. Accessible glo
 // PROCEDURE-LIKE (STATIC) FUNCTIONS
 /**
  * Reads safely from user input a variable of the type specified by the type parameter.
- * Forces the user to introduce a valid input. Stores data read in readed_variable.
+ * Forces the user to introduce a valid input. Stores data read in read_variable.
  **/
-void ** bulletproof_input(size_t type, void* read_variable);
+void* bulletproof_input(size_t type, const int* num_elements, char separator);
 
 /**
  * Calculates the natural logarithm of a number x with a given base b
