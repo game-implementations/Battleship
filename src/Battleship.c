@@ -1,10 +1,11 @@
 #include "Battleship.h"
 
-unsigned int DIM = 10;
+unsigned int DIM = 50;
 
 
 // PROCEDURE-LIKE (STATIC) FUNCTIONS
-void* bulletproof_input(size_t type, const int* num_elements, char separator)
+
+/*void* bulletproof_input(size_t type, const int* num_elements, char separator)
 {
     char* in = malloc(sizeof(char) * MAX_READ_CHARACTERS);
 
@@ -34,13 +35,6 @@ void* bulletproof_input(size_t type, const int* num_elements, char separator)
                 printf("int");
                 break;
             }
-                /*
-                case sizeof(float):
-                {
-                    printf("float (real)");
-                    break;
-                }
-                */
             case sizeof(double):
             {
                 printf("double (real)");
@@ -68,7 +62,7 @@ void* bulletproof_input(size_t type, const int* num_elements, char separator)
     // At this point the string is read
     char** result;
 
-}
+}*/
 
 
 unsigned int naturalLog(unsigned int x, unsigned int base)
@@ -659,6 +653,58 @@ void showBoard(char** board)
 // void saveRecords(DoubleLinkedList records) { }
 
 
+unsigned int computePositionsOccupied()
+{
+    unsigned int numberPositionsUsed = 0;
+
+    for (unsigned int i = 0; i < SHIP_MAX_SIZE; i++)
+    {
+        numberPositionsUsed += NUM_SHIPS_BY_SIZE[i] * (i + 1);
+    }
+    return numberPositionsUsed;
+}
+
+
+float computePercentageOccupancy()
+{
+    return ((float) computePositionsOccupied() / (float) (DIM * DIM)) * 100;
+}
+
+
+void satisfyUsagePercentage()
+{
+    printf("%f\n", computePercentageOccupancy());
+    unsigned int n = 0;
+    float p;
+    while (computePercentageOccupancy() < BOARD_USAGE_PERCENTAGE)
+    {
+        n++;
+        p = computePercentageOccupancy();
+        printf("\nUsage Percentage: %f, with n %i\n", p, n);
+        for (unsigned int i = 0; i < SHIP_MAX_SIZE; i++)
+        {
+            NUM_SHIPS_BY_SIZE[i] = (SHIP_MAX_SIZE - i) * n;
+        }
+    }
+
+}
+
+
+int readInt()
+{
+    int i;
+    int scanfReturn;
+    char scanfNewline;
+    do
+    {
+        fflush(stdin);
+        scanfReturn = scanf("%i%c", &i, &scanfNewline);
+
+    }
+    while (scanfReturn != 2 || scanfNewline != '\n');
+    return i;
+
+}
 
 
 
@@ -669,6 +715,13 @@ void showBoard(char** board)
 
 int main()
 {
+    // printf("%i,%i,%i,%i\n", NUM_SHIPS_BY_SIZE[0], NUM_SHIPS_BY_SIZE[1],NUM_SHIPS_BY_SIZE[2],NUM_SHIPS_BY_SIZE[3]);
+
+    //satisfyUsagePercentage();
+    //printf("%i,%i,%i,%i\n", NUM_SHIPS_BY_SIZE[0], NUM_SHIPS_BY_SIZE[1],NUM_SHIPS_BY_SIZE[2],NUM_SHIPS_BY_SIZE[3]);
+    printf("%i", readInt());
+
+/*
     srand(time(NULL));
 
     char** defense_board = reserveBoard();
@@ -721,5 +774,6 @@ int main()
     while (shot_ships < num_ships);
     showBoard(defense_board);
     showBoard(attack_board);
+    */
 }
 

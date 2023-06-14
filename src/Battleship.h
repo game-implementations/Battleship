@@ -41,6 +41,9 @@
 #define AUTO_SHIP_PLACEMENT_MAX_TRIES 100000
 // Maximum number of elements in an input array
 #define MAX_READ_CHARACTERS 1000
+// Proportion of positions used by ships in the beard
+#define BOARD_USAGE_PERCENTAGE 20
+
 
 // CONSTANT VALUES
 /**
@@ -48,7 +51,7 @@
  * For example, NUM_SHIPS_TYPE[0] gives the number of ships of size 1
  * that we are going to have in the game.
  **/
-const unsigned char NUM_SHIPS_BY_SIZE[] = {4, 3, 2, 1};
+unsigned char NUM_SHIPS_BY_SIZE[] = {4, 3, 2, 1};
 const unsigned char SHIP_MAX_SIZE = 4;
 
 // TYPE DEFINITION
@@ -86,7 +89,7 @@ extern unsigned int DIM;  // Contains the dimension of the board. Accessible glo
  * Reads safely from user input a variable of the type specified by the type parameter.
  * Forces the user to introduce a valid input. Stores data read in read_variable.
  **/
-void* bulletproof_input(size_t type, const int* num_elements, char separator);
+// void* bulletproof_input(size_t type, const int* num_elements, char separator);
 
 /**
  * Calculates the natural logarithm of a number x with a given base b
@@ -237,3 +240,15 @@ void loadRecords(DoubleLinkedList* records);
  * @param records
  */
 void saveRecords(DoubleLinkedList records);
+
+/**
+ * Modifies *NUM_SHIPS_BY_SIZE to fit the BOARD_USAGE_PERCENTAGE.
+ * This function ensures that the board usage percentage is equal or greater than BOARD_USAGE_PERCENTAGE.
+*/
+void satisfyUsagePercentage();
+
+
+/**
+ * Tries to read an int from the user input until it achieves it.
+*/
+int readInt();
