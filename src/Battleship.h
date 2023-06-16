@@ -258,7 +258,7 @@ int inputBoardDimension();
 
 void play();
 
-void initializePlayer(Player* player, unsigned int dim);
+void initializePlayer(Player* player, unsigned int dim, unsigned char* numShipsBySize, unsigned char shipMaxSize);
 
 void readChar();
 
