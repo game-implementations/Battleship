@@ -3,8 +3,7 @@
 #include <stdbool.h>
 #include <stdlib.h>
 #include <time.h>
-#include "DoubleLinkedList.h"
-
+#include "input.h"
 
 // DEFINES
 // Cell symbols
@@ -36,68 +35,51 @@
 #define STATE_MASK_DIRECTION_DETECTED 0x02
 #define STATE_MASK_DIRECTION 0x01
 
-// Magic numbers
-// Number of tries when fitting a ship into the board before reinitializing the board again
-#define AUTO_SHIP_PLACEMENT_MAX_TRIES 100000
-// Maximum number of elements in an input array
-#define MAX_READ_CHARACTERS 1000
-// Proportion of positions used by ships in the beard
-#define BOARD_USAGE_PERCENTAGE 20
-// Maximum number of characters in the input to be read
-#define MAX_CHAR_USER_INPUT 100
-
 // Number of Players
 #define ZERO_PLAYERS 0
 #define ONE_PLAYER 1
 #define TWO_PLAYERS 2
 
+// Magic numbers
+// Number of tries when fitting a ship into the board before reinitializing the board again
+#define AUTO_SHIP_PLACEMENT_MAX_TRIES 100000
+// Proportion of positions used by ships in the board
+#define BOARD_USAGE_PERCENTAGE 20
+// Maximum number of characters in the user input to be read
+#define MAX_CHAR_USER_INPUT 1000
+
 
 // CONSTANT VALUES
-/**
+/*
  * Defines the number of ships for each ship of different size.
  * For example, NUM_SHIPS_TYPE[0] gives the number of ships of size 1
  * that we are going to have in the game.
- **/
+ */
 unsigned char NUM_SHIPS_BY_SIZE[] = {4, 3, 2, 1};
-const unsigned char SHIP_MAX_SIZE = 4;
+const unsigned char SHIP_MAX_SIZE = 4;  // Dimension of the NUM_SHIPS_BY_SIZE array
 
 // TYPE DEFINITION
+// Position in the board
 typedef struct Position {
     unsigned int x;
     unsigned int y;
 } Position;
 
-    /*
-     * Register that uses the 5 bits of less weight.
-     * - The bit 4 (mask 0x10) at 0 or 1 determines if we are in SEEK mode or in DESTROY mode, respectively. In SEEK
-     *   mode we shoot randomly until a ship is hit, and we enter in DESTROY mode. In DESTROY mode we try to sink the
-     *   ship that made us enter in DESTROY mode, and we will enter again in SEEK mode if we destroy the ship.
-     * - The bit 3 (mask 0x08) at 1 or 0 determines if we have detected the orientation of the ship or not.
-     * - The bit 2 (mask 0x04) at 1 or 0 determines if the ship is vertical or horizontal. This value is valid only if
-     *   the bit 3 is at 1.
-     * - The bit 1 (mask 0x02) at 1 or 0 determines if we have detected a unique direction to sink the ship.
-     * - The bit 0 (mask 0x01) at 1 or 0 determines if we need to go RIGHT / UP or LEFT / DOWN, depending on the
-     *   corresponding value of bit 2.
-     */
-    //unsigned char mode;
-
+// Contains all the data of a player
 typedef struct Player {
     char** attackBoard;  // Points to the board containing the revealed positions of the enemy
     char** defenseBoard;  // Points to the board that contains our ships
-    DoubleLinkedList tableResultMoves;  // Contains all the results from the shots of this player
     Position lastShot;
     unsigned int lastResult;
     unsigned int shot_ships;
 } Player;
 
+// Contains the data of a initialized game
 typedef struct Game {
     unsigned int num_players;  // Contains the number of players.
     Player players[2];
     unsigned int dim;
 } Game;
-
-// GLOBAL VARIABLE DEFINITIONS
-extern unsigned int DIM;  // Contains the dimension of the board. Accessible globally
 
 // PROCEDURE-LIKE (STATIC) FUNCTIONS
 /**
@@ -126,20 +108,20 @@ void pause();
  * Reserves memory for a board and returns the pointer to the board.
  * @return new board
  */
-char** reserveBoard();
+char** reserveBoard(unsigned int dim);
 
 /**
  * Fills the received board with NOT_DISCOVERED symbols.
  * @param board
  */
-void initializeBoard(char** board);
+void initializeBoard(char** board, unsigned int dim);
 
 /**
  * Reserves memory space for a board of the given dimensions, initializes it with WATER and the ships
  * and returns it.
  * @return pointer to the initialized board with dimensions DIM x DIM
  */
-void initializeBoardWithShipsAuto(char** board);
+void initializeBoardWithShipsAuto(char** board, unsigned int dim);
 
 /**
  * Reserves memory space for a board of the given dimensions, initializes it with WATER and asks the user to place his
@@ -164,7 +146,7 @@ void initializeShip(char** defense_board, Position position, unsigned int ship_s
  * @param board
  * @param shipPosition
  */
-void floodSurroundings(char** board, Position shipPosition);
+void floodSurroundings(char** board, Position shipPosition, unsigned int dim);
 
 /**
  * Locates a Ship pointed by the variables *x_ini and *y_ini by saving in *x_ini and *y_ini the initial coordinates of the ship
@@ -172,7 +154,7 @@ void floodSurroundings(char** board, Position shipPosition);
  * This function expects correct coordinates.
  * This function always places the coordinates with lower (or equal) values in *x_ini and *y_ini
  **/
-void locateShip(char** board, Position* position_ini, Position* position_end);
+void locateShip(char** board, Position* position_ini, Position* position_end, unsigned int dim);
 
 /**
  * Detects the orientation of a ship in the board. Returns 0 if no orientation is detected, 1 if the ship is vertical
@@ -181,7 +163,7 @@ void locateShip(char** board, Position* position_ini, Position* position_end);
  * @param shipPosition
  * @return
  */
-unsigned int detectOrientation(char** board, Position shipPosition);
+unsigned int detectOrientation(char** board, Position shipPosition, unsigned int dim);
 
 /**
  * Locates the limit of the ship pointed by the coordinates x and y and then checks
@@ -191,7 +173,7 @@ unsigned int detectOrientation(char** board, Position shipPosition);
  * @param position
  * @return
  */
-bool isSunk(char** board, Position position);
+bool isSunk(char** board, Position position, unsigned int dim);
 
 /**
  * Returns true if the ship specified by parameters does not collide wth any elements of the given board.
@@ -202,7 +184,7 @@ bool isSunk(char** board, Position position);
  * @param orientation
  * @return
  */
-bool doesFit(char** defense_board, Position position, unsigned int ship_size, bool orientation);
+bool doesFit(char** defense_board, Position position, unsigned int ship_size, bool orientation, unsigned int dim);
 
 /**
  * This functions updates the ship board with a shoot on a certain cell and informs the result of the shot:
@@ -214,7 +196,7 @@ bool doesFit(char** defense_board, Position position, unsigned int ship_size, bo
  * @param position
  * @return
  */
-unsigned int shoot(char** board, Position position);
+unsigned int shoot(char** board, Position position, unsigned int dim);
 
 /**
  * Returns two coordinates representing a cell that has been targeted as the next shot.
@@ -228,33 +210,33 @@ unsigned int shoot(char** board, Position position);
  * @param board
  * @param dim
  */
-Position computeNextMovement(char** attach_board, Position lastShot, unsigned int result_last_shot);
+Position computeNextMovement(char** attach_board, Position lastShot, unsigned int result_last_shot, unsigned int dim);
 
 /**
  * Calculates the final points for the info of the shoots of a certain player.
  * @param tableResultMoves
  * @return
  */
-int calculateScore(DoubleLinkedList tableResultMoves);
+//int calculateScore(DoubleLinkedList tableResultMoves);
 
 /**
  * Prints the board given by parameter.
  * @param board
  */
-void showBoard(char** board);
+void showBoard(char** board, unsigned int dim);
 
 /**
  * Retrieves records from binary file and fills in the records List
  * @param records
  */
-void loadRecords(DoubleLinkedList* records);
+//void loadRecords(DoubleLinkedList* records);
 
 
 /**
  * Save records to binary file
  * @param records
  */
-void saveRecords(DoubleLinkedList records);
+//void saveRecords(DoubleLinkedList records);
 
 /**
  * Modifies *NUM_SHIPS_BY_SIZE to fit the BOARD_USAGE_PERCENTAGE.
@@ -294,7 +276,7 @@ void startNewGame();
 /**
  * Display the menu options in the screen
 */
-void annotateLastShoot(char** attackBoard, unsigned int lastResult, Position lastShot);
+void annotateLastShoot(char** attackBoard, unsigned int lastResult, Position lastShot, unsigned int dim);
 
 /**
  * Returns the number of boats in num ships by size
@@ -305,6 +287,6 @@ int inputBoardDimension();
 
 void play();
 
-void initializePlayer(Player* player);
+void initializePlayer(Player* player, unsigned int dim);
 
 void readChar();

@@ -15,21 +15,18 @@ OBJDIR = obj
 BINDIR = bin
 LIBDIR = lib
 
-
 # Main target
 all : $(BINDIR)/Battleship
 
-
 # Double Linked List object
-$(OBJDIR)/DoubleLinkedList.o : $(SRCDIR)/DoubleLinkedList.c
+$(OBJDIR)/input.o : $(SRCDIR)/input.c
 	mkdir -p $(OBJDIR)
-	$(CC) $(CFLAGS) -o $(OBJDIR)/DoubleLinkedList.o -c $(SRCDIR)/DoubleLinkedList.c
+	$(CC) $(CFLAGS) -o $(OBJDIR)/input.o -c $(SRCDIR)/input.c
 
 # Double Linked List library
-$(LIBDIR)/DoubleLinkedList.so : $(OBJDIR)/DoubleLinkedList.o
+$(LIBDIR)/input.so : $(OBJDIR)/input.o
 	mkdir -p $(LIBDIR)
-	$(CC) $(CFLAGS) $(CFLAGS_LIB)DoubleLinkedList.so -o $(LIBDIR)/DoubleLinkedList.so $(OBJDIR)/DoubleLinkedList.o
-
+	$(CC) $(CFLAGS) $(CFLAGS_LIB)input.so -o $(LIBDIR)/input.so $(OBJDIR)/input.o
 
 # Battleship object
 $(OBJDIR)/Battleship.o : $(SRCDIR)/Battleship.c
@@ -37,25 +34,20 @@ $(OBJDIR)/Battleship.o : $(SRCDIR)/Battleship.c
 	$(CC) $(CFLAGS) -o $(OBJDIR)/Battleship.o -c $(SRCDIR)/Battleship.c
 
 # Battleship binary
-$(BINDIR)/Battleship : $(OBJDIR)/Battleship.o $(LIBDIR)/DoubleLinkedList.so
+$(BINDIR)/Battleship : $(OBJDIR)/Battleship.o $(LIBDIR)/input.so
 	mkdir -p $(BINDIR)
-	$(CC) $(CFLAGS) -o $(BINDIR)/Battleship $(OBJDIR)/Battleship.o $(LIBDIR)/DoubleLinkedList.so
+	$(CC) $(CFLAGS) -o $(BINDIR)/Battleship $(OBJDIR)/Battleship.o $(LIBDIR)/input.so
 	chmod 111 $(BINDIR)/Battleship
-
 
 # Run Battleship binary
 run : $(BINDIR)/Battleship
 	$(BINDIR)/Battleship
 
-
 # Debug Battleship binary
 debug : $(BINDIR)/Battleship
 	gdb $(BINDIR)/Battleship
-
 
 # Clean compilation objects
 .PHONY : clean
 clean :
 	rm -rf $(OBJDIR) $(BINDIR) $(LIBDIR)
-
-
