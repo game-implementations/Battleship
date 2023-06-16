@@ -92,7 +92,7 @@ typedef struct Player {
 
 typedef struct Game {
     unsigned int num_players;  // Contains the number of players.
-    Player* players;
+    Player players[2];
     unsigned int dim;
 } Game;
 
@@ -304,3 +304,7 @@ unsigned int getNumberOfBoats();
 int inputBoardDimension();
 
 void play();
+
+void initializePlayer(Player* player);
+
+void readChar();
