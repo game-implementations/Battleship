@@ -1,21 +1,12 @@
 #include "Battleship.h"
 
-//unsigned int DIM = 50;
-Player players[2];
-
+// PROCEDURE-LIKE (STATIC) FUNCTIONS
 unsigned int naturalLog(unsigned int x, unsigned int base)
 {
     unsigned int nlog = 0;
     for (unsigned int i = x; i > 0; i /= base)
         nlog++;
     return nlog - 1;
-}
-
-void pause()
-{
-    char a;
-    if (scanf("%c", &a))
-        return;
 }
 
 
@@ -45,16 +36,16 @@ void initializeBoard(char** board, unsigned int dim)
  * @param board game board
  * @return true if it is correctly initialized and false if is not completely initialized
  */
-bool initializeBoardWithShipsAuto_auxiliar(char** defense_board, unsigned int dim)
+bool initializeBoardWithShipsAutoPrivate(char** defense_board, unsigned int dim, unsigned char* numShipsBySize, unsigned char shipMaxSize)
 {
     Position ini;
     unsigned int orientation = 0, number_of_tries;
 
     // Loop through each ship size
-    for (unsigned int ship_size = 1; ship_size <= SHIP_MAX_SIZE; ship_size++)
+    for (unsigned int ship_size = 1; ship_size <= shipMaxSize; ship_size++)
     {
         // Loop through each individual ship
-        for (unsigned int ship_counter = 0; ship_counter < NUM_SHIPS_BY_SIZE[ship_size - 1]; ship_counter++)
+        for (unsigned int ship_counter = 0; ship_counter < numShipsBySize[ship_size - 1]; ship_counter++)
         {
             number_of_tries = 0;
             // Try to put the current ship on the board
@@ -85,12 +76,12 @@ bool initializeBoardWithShipsAuto_auxiliar(char** defense_board, unsigned int di
     return true;
 }
 
-void initializeBoardWithShipsAuto(char** board, unsigned int dim)
+void initializeBoardWithShipsAuto(char** board, unsigned int dim, unsigned char* numShipsBySize, unsigned char shipMaxSize)
 {
     // While the board can not be initialized, keep trying
     do
         initializeBoard(board, dim);
-    while (!initializeBoardWithShipsAuto_auxiliar(board, dim));
+    while (!initializeBoardWithShipsAutoPrivate(board, dim, numShipsBySize, shipMaxSize));
 
     // When the board is initialized, substitute not discovered cells with water
     for (unsigned int i = 0; i < dim; i++)
@@ -266,7 +257,7 @@ unsigned int shoot(char** board, Position position, unsigned int dim)
     }
 }
 
-void computeNextMovement_auxiliarDetectState(char** attack_board, Position iniCurrentShipPosition, unsigned int* state, unsigned int dim)
+void computeNextMovementDetectState(char** attack_board, Position iniCurrentShipPosition, unsigned int* state, unsigned int dim)
 {
     Position endCurrentShipPosition;
     // Now we need to obtain info about orientation
@@ -405,13 +396,13 @@ Position computeNextMovement(char** attack_board, Position lastShotPosition, uns
         {
             // We did find a not destroyed ship in surroundingPositions[i], detect state from that ship
             iniCurrentShipPosition = surroundingPositions[i];
-            computeNextMovement_auxiliarDetectState(attack_board, iniCurrentShipPosition, &state, dim);
+            computeNextMovementDetectState(attack_board, iniCurrentShipPosition, &state, dim);
         }
     }
     else if (result_last_shot == RESULT_SHOT)
     {
         // Detect state using the position of the last shot ship
-        computeNextMovement_auxiliarDetectState(attack_board, lastShotPosition, &state, dim);
+        computeNextMovementDetectState(attack_board, lastShotPosition, &state, dim);
         // We are already in a ship, so the iniCurrentShipPosition will be the lastShotPosition
         iniCurrentShipPosition = lastShotPosition;
     }
@@ -585,39 +576,33 @@ void showBoard(char** board, unsigned int dim)
 	printf("\n");
 }
 
-// void loadRecords(DoubleLinkedList* records) { }
-
-// void saveRecords(DoubleLinkedList records) { }
-// int calculateScore(DoubleLinkedList tableResultMoves) { }
-
-
-unsigned int computePositionsOccupied()
+unsigned int computePositionsOccupied(unsigned char* numShipsBySize, unsigned char shipMaxSize)
 {
     unsigned int numberPositionsUsed = 0;
 
-    for (unsigned int i = 0; i < SHIP_MAX_SIZE; i++)
+    for (unsigned int i = 0; i < shipMaxSize; i++)
     {
-        numberPositionsUsed += NUM_SHIPS_BY_SIZE[i] * (i + 1);
+        numberPositionsUsed += numShipsBySize[i] * (i + 1);
     }
     return numberPositionsUsed;
 }
 
 
-float computePercentageOccupancy(unsigned int dim)
+float computePercentageOccupancy(unsigned char* numShipsBySize, unsigned char shipMaxSize, unsigned int dim)
 {
-    return ((float) computePositionsOccupied() / (float) (dim * dim)) * 100;
+    return ((float) computePositionsOccupied(numShipsBySize, shipMaxSize) / (float) (dim * dim)) * 100;
 }
 
 
-void satisfyUsagePercentage(unsigned int dim)
+void satisfyUsagePercentage(unsigned char* numShipsBySize, unsigned char shipMaxSize, unsigned int dim)
 {
     unsigned int n = 0;
-    while (computePercentageOccupancy(dim) < BOARD_USAGE_PERCENTAGE)
+    while (computePercentageOccupancy(numShipsBySize, shipMaxSize, dim) < BOARD_USAGE_PERCENTAGE)
     {
         n++;
-        for (unsigned int i = 0; i < SHIP_MAX_SIZE; i++)
+        for (unsigned int i = 0; i < shipMaxSize; i++)
         {
-            NUM_SHIPS_BY_SIZE[i] = (SHIP_MAX_SIZE - i) * n;
+            numShipsBySize[i] = (shipMaxSize - i) * n;
         }
     }
 
@@ -695,26 +680,26 @@ int inputPlayerAmount()
 }
 
 
-void initializePlayer(Player* player, unsigned int dim)
+void initializePlayer(Player* player, unsigned int dim, unsigned char* numShipsBySize, unsigned char shipMaxSize)
 {
     player->attackBoard = reserveBoard(dim);
     player->defenseBoard = reserveBoard(dim);
     initializeBoard(player->attackBoard, dim);
-    initializeBoardWithShipsAuto(player->defenseBoard, dim);
+    initializeBoardWithShipsAuto(player->defenseBoard, dim, numShipsBySize, shipMaxSize);
     player->lastResult = RESULT_INITIAL;
     player->shot_ships = 0;
 }
 
 
 
-void initializeGame(Game* gameInstance, unsigned int* dim)
+void initializeGame(Game* game, unsigned int* dim)
 {
-    *dim = gameInstance->dim = inputBoardDimension();
-    gameInstance->num_players = inputPlayerAmount();
+    *dim = game->dim = inputBoardDimension();
+    game->num_players = inputPlayerAmount();
     // gameInstance->players = malloc(sizeof(Player) * 2);
     // Number of boards created
-    initializePlayer(&gameInstance->players[0], *dim);
-    initializePlayer(&gameInstance->players[1], *dim);
+    initializePlayer(&game->players[0], *dim, game->numShipsBySize, game->shipMaxSize);
+    initializePlayer(&game->players[1], *dim, game->numShipsBySize, game->shipMaxSize);
 }
 
 
@@ -747,12 +732,12 @@ void annotateLastShoot(char** attack_board, unsigned int lastResult, Position la
 }
 
 
-unsigned int getNumberOfBoats()
+unsigned int getNumberOfBoats(unsigned char* numShipsBySize, unsigned char shipMaxSize)
 {
     int accumulator = 0;
-    for (int i =0; i < SHIP_MAX_SIZE; i++)
+    for (int i =0; i < shipMaxSize; i++)
     {
-        accumulator += NUM_SHIPS_BY_SIZE[i];
+        accumulator += numShipsBySize[i];
     }
     return accumulator;
 }
@@ -774,10 +759,8 @@ void playZero(Game game)
         }
 
         annotateLastShoot(game.players[0].attackBoard, game.players[0].lastResult, game.players[0].lastShot, game.dim);
-
-
     }
-    while (game.players[0].shot_ships < computePositionsOccupied());
+    while (game.players[0].shot_ships < computePositionsOccupied(game.numShipsBySize, game.shipMaxSize));
     showBoard(game.players[0].defenseBoard, game.dim);
     showBoard(game.players[0].attackBoard, game.dim);
 }
@@ -851,6 +834,12 @@ void playOne(Game game)
     }
     while (game.players[0].shot_ships < computePositionsOccupied() && game.players[1].shot_ships < computePositionsOccupied());
 }
+
+
+// void loadRecords(DoubleLinkedList* records) { }
+
+// void saveRecords(DoubleLinkedList records) { }
+// int calculateScore(DoubleLinkedList tableResultMoves) { }
 
 
 int main()

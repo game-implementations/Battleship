@@ -51,12 +51,9 @@
 
 // CONSTANT VALUES
 /*
- * Defines the number of ships for each ship of different size.
- * For example, NUM_SHIPS_TYPE[0] gives the number of ships of size 1
- * that we are going to have in the game.
+ *
  */
-unsigned char NUM_SHIPS_BY_SIZE[] = {4, 3, 2, 1};
-const unsigned char SHIP_MAX_SIZE = 4;  // Dimension of the NUM_SHIPS_BY_SIZE array
+
 
 // TYPE DEFINITION
 // Position in the board
@@ -74,19 +71,20 @@ typedef struct Player {
     unsigned int shot_ships;
 } Player;
 
-// Contains the data of a initialized game
+// Contains the data of an initialized game
 typedef struct Game {
     unsigned int num_players;  // Contains the number of players.
     Player players[2];
     unsigned int dim;
+    /*
+     * Defines the number of ships for each ship of different size. For example, NUM_SHIPS_TYPE[0] gives the number of
+     * ships of size 1 that we are going to have in the game.
+     */
+    unsigned char numShipsBySize[4];  // = {4, 3, 2, 1};
+    unsigned char shipMaxSize = 4;  // Dimension of the NUM_SHIPS_BY_SIZE array
 } Game;
 
 // PROCEDURE-LIKE (STATIC) FUNCTIONS
-/**
- * Reads safely from user input a variable of the type specified by the type parameter.
- * Forces the user to introduce a valid input. Stores data read in read_variable.
- **/
-// void* bulletproof_input(size_t type, const int* num_elements, char separator);
 
 /**
  * Calculates the natural logarithm of a number x with a given base b
@@ -95,12 +93,6 @@ typedef struct Game {
  * @return Result of the logarithm
  */
 unsigned int naturalLog(unsigned int x, unsigned int b);
-
-/**
- * Pauses the code
- */
-void pause();
-
 
 // METHOD-LIKE FUNCTIONS FOR THE BATTLESHIP GAME
 
@@ -121,7 +113,7 @@ void initializeBoard(char** board, unsigned int dim);
  * and returns it.
  * @return pointer to the initialized board with dimensions DIM x DIM
  */
-void initializeBoardWithShipsAuto(char** board, unsigned int dim);
+void initializeBoardWithShipsAuto(char** board, unsigned int dim, unsigned char* numShipsBySize, unsigned char shipMaxSize);
 
 /**
  * Reserves memory space for a board of the given dimensions, initializes it with WATER and asks the user to place his
@@ -213,37 +205,16 @@ unsigned int shoot(char** board, Position position, unsigned int dim);
 Position computeNextMovement(char** attach_board, Position lastShot, unsigned int result_last_shot, unsigned int dim);
 
 /**
- * Calculates the final points for the info of the shoots of a certain player.
- * @param tableResultMoves
- * @return
- */
-//int calculateScore(DoubleLinkedList tableResultMoves);
-
-/**
  * Prints the board given by parameter.
  * @param board
  */
 void showBoard(char** board, unsigned int dim);
 
 /**
- * Retrieves records from binary file and fills in the records List
- * @param records
- */
-//void loadRecords(DoubleLinkedList* records);
-
-
-/**
- * Save records to binary file
- * @param records
- */
-//void saveRecords(DoubleLinkedList records);
-
-/**
  * Modifies *NUM_SHIPS_BY_SIZE to fit the BOARD_USAGE_PERCENTAGE.
  * This function ensures that the board usage percentage is equal or greater than BOARD_USAGE_PERCENTAGE.
 */
-void satisfyUsagePercentage();
-
+void satisfyUsagePercentage(unsigned char* numShipsBySize, unsigned char shipMaxSize, unsigned int dim);
 
 /**
  * Tries to read an int from the user input until it achieves it.
@@ -281,7 +252,7 @@ void annotateLastShoot(char** attackBoard, unsigned int lastResult, Position las
 /**
  * Returns the number of boats in num ships by size
 */
-unsigned int getNumberOfBoats();
+unsigned int getNumberOfBoats(unsigned char* numShipsBySize, unsigned char shipMaxSize);
 
 int inputBoardDimension();
 
@@ -290,3 +261,23 @@ void play();
 void initializePlayer(Player* player, unsigned int dim);
 
 void readChar();
+
+/**
+ * Calculates the final points for the info of the shoots of a certain player.
+ * @param tableResultMoves
+ * @return
+ */
+//int calculateScore(DoubleLinkedList tableResultMoves);
+
+/**
+ * Retrieves records from binary file and fills in the records List
+ * @param records
+ */
+//void loadRecords(DoubleLinkedList* records);
+
+
+/**
+ * Save records to binary file
+ * @param records
+ */
+//void saveRecords(DoubleLinkedList records);
