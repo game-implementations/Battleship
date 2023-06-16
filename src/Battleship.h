@@ -81,7 +81,7 @@ typedef struct Game {
      * ships of size 1 that we are going to have in the game.
      */
     unsigned char numShipsBySize[4];  // = {4, 3, 2, 1};
-    unsigned char shipMaxSize = 4;  // Dimension of the NUM_SHIPS_BY_SIZE array
+    unsigned char shipMaxSize;  // Dimension of the NUM_SHIPS_BY_SIZE array
 } Game;
 
 // PROCEDURE-LIKE (STATIC) FUNCTIONS

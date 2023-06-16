@@ -832,7 +832,8 @@ void playOne(Game game)
             }
         }
     }
-    while (game.players[0].shot_ships < computePositionsOccupied() && game.players[1].shot_ships < computePositionsOccupied());
+    while (game.players[0].shot_ships < computePositionsOccupied(game.numShipsBySize, game.shipMaxSize)
+            && game.players[1].shot_ships < computePositionsOccupied(game.numShipsBySize, game.shipMaxSize));
 }
 
 
