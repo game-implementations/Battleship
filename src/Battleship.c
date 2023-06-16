@@ -1,6 +1,7 @@
 #include "Battleship.h"
 
 unsigned int DIM = 50;
+Player players[2];
 
 
 // PROCEDURE-LIKE (STATIC) FUNCTIONS
@@ -692,88 +693,213 @@ void satisfyUsagePercentage()
 
 int readInt()
 {
-    int i;
-    int scanfReturn;
-    char scanfNewline;
+    char* endptr, *readInput = calloc(MAX_CHAR_USER_INPUT, sizeof(char));
+    int number = 0;
+
     do
     {
-        fflush(stdin);
-        scanfReturn = scanf("%i%c", &i, &scanfNewline);
+        if (fgets(readInput, MAX_CHAR_USER_INPUT, stdin) == NULL)
+        {
+            continue;
+        }
 
+        number = strtol(readInput, &endptr, 10);
     }
-    while (scanfReturn != 2 || scanfNewline != '\n');
-    return i;
+    while (*endptr != '\n');
 
+    free(readInput);
+    return number;
+}
+
+
+int readIntInRange(int minimumNumber, int maximumRange)
+{
+    int integerInRange = 0;
+    bool hasRangeError = false;
+    do
+    {
+        if (hasRangeError)
+        {
+            printf("You have given an integer out of range.\n");
+        }
+        printf("Introduce an integer from %i to %i:\t", minimumNumber, maximumRange);
+        integerInRange = readInt();
+        printf("\n");
+        hasRangeError = true;
+    }
+    while(integerInRange > maximumRange || integerInRange < minimumNumber);
+    return integerInRange;
+}
+
+
+void showMenu()
+{
+    printf("\n1. Create new game\n");
+    printf("2. Load game\n");
+    printf("3. Play game\n");
+    printf("4. Save game\n");
+    printf("5. Highscore\n");
+    printf("6. Quit\n");
+}
+
+int readMenuEntry()
+{
+    return readIntInRange(1, 6);
+}
+
+
+int inputBoardDimension()
+{
+    printf("Enter board dimension\n");
+    int dimension = readIntInRange(8, 23);
+    return dimension;
+}
+
+int inputPlayerAmount()
+{
+    printf("Enter number of players\n");
+    return readIntInRange(0, 2);
+}
+
+
+void initializePlayer(Player player)
+{
+    player.attackBoard = reserveBoard();
+    player.defenseBoard = reserveBoard();
+    initializeBoard(player.attackBoard);
+    initializeBoardWithShipsAuto(player.defenseBoard);
+    player.lastResult = RESULT_INITIAL;
+    player.shot_ships = 0;
 }
 
 
 
+void initializeGame(Game* gameInstance)
+{
+    DIM = gameInstance->dim = inputBoardDimension();
+    gameInstance->num_players = inputPlayerAmount();
+    gameInstance->players = malloc(sizeof(Player) * 2);
+    // Number of boards created
+    initializePlayer(gameInstance->players[0]);
+    initializePlayer(gameInstance->players[1]);
+}
 
 
+void annotateLastShoot(char** attack_board, unsigned int lastResult, Position lastShot)
+{
+    switch(lastResult)
+    {
+        case RESULT_REPEATED_CELL || RESULT_WATER:
+        {
+            attack_board[lastShot.x][lastShot.y] = SHOT_WATER;
+            break;
+        }
+        case RESULT_SHOT:
+        {
+            attack_board[lastShot.x][lastShot.y] = SHOT_SHIP;
+            break;
+        }
+        case RESULT_SHOT_AND_SUNK:
+        {
+            floodSurroundings(attack_board, lastShot);
+            attack_board[lastShot.x][lastShot.y] = SHOT_SHIP;
+            break;
+        }
+        default:
+        {
+            printf("\nError");
+            exit(1);
+        }
+    }
+}
 
+
+unsigned int getNumberOfBoats()
+{
+    int accumulator = 0;
+    for (int i =0; i < SHIP_MAX_SIZE; i++)
+    {
+        accumulator += NUM_SHIPS_BY_SIZE[i];
+    }
+    return accumulator;
+}
+
+void playZero(Game game)
+{
+    do
+    {
+        showBoard(game.players[0].defenseBoard);
+        showBoard(game.players[0].attackBoard);
+
+        pause();
+
+        game.players[0].lastShot = computeNextMovement(game.players[0].attackBoard, game.players[0].lastShot, game.players[0].lastResult);
+        game.players[0].lastResult = shoot(game.players[0].defenseBoard, game.players[0].lastShot);
+        if (game.players[0].lastResult == RESULT_SHOT || game.players[0].lastResult == RESULT_SHOT_AND_SUNK)
+        {
+            game.players[0].shot_ships++;
+        }
+
+        annotateLastShoot(game.players[0].attackBoard, game.players[0].lastResult, game.players[0].lastShot);
+
+
+    }
+    while (game.players[0].shot_ships < getNumberOfBoats());
+    showBoard(game.players[0].defenseBoard);
+    showBoard(game.players[0].attackBoard);
+}
 
 
 int main()
 {
-    // printf("%i,%i,%i,%i\n", NUM_SHIPS_BY_SIZE[0], NUM_SHIPS_BY_SIZE[1],NUM_SHIPS_BY_SIZE[2],NUM_SHIPS_BY_SIZE[3]);
-
-    //satisfyUsagePercentage();
-    //printf("%i,%i,%i,%i\n", NUM_SHIPS_BY_SIZE[0], NUM_SHIPS_BY_SIZE[1],NUM_SHIPS_BY_SIZE[2],NUM_SHIPS_BY_SIZE[3]);
-    printf("%i", readInt());
-
-/*
     srand(time(NULL));
+    Game game;
 
-    char** defense_board = reserveBoard();
-    char** attack_board = reserveBoard();
-    initializeBoard(attack_board);
-    initializeBoardWithShipsAuto(defense_board);
-
-
-    unsigned int shot_ships = 0;
-    unsigned int num_ships = 10;
-    Position lastShot;
-    lastShot.x = 0;
-    lastShot.y = 0;
-    unsigned int lastResult = RESULT_INITIAL;
-    do
+    while (true)
     {
-        showBoard(defense_board);
-        showBoard(attack_board);
-
-        pause();
-        
-        lastShot = computeNextMovement(attack_board, lastShot, lastResult);
-        lastResult = shoot(defense_board, lastShot);
-        switch(lastResult)
+        showMenu();
+        int menuOption = readMenuEntry();
+        switch (menuOption)
         {
-            case RESULT_REPEATED_CELL || RESULT_WATER:
+            case 1:
             {
-                attack_board[lastShot.x][lastShot.y] = SHOT_WATER;
+                printf("Creating new game...\n");
+                initializeGame(&game);
                 break;
             }
-            case RESULT_SHOT:
+            case 2:
             {
-                attack_board[lastShot.x][lastShot.y] = SHOT_SHIP;
+                printf("Loading game...\n");
                 break;
             }
-            case RESULT_SHOT_AND_SUNK:
+            case 3:
             {
-                floodSurroundings(attack_board, lastShot);
-                attack_board[lastShot.x][lastShot.y] = SHOT_SHIP;
-                shot_ships++;
+                printf("Play game...\n");
+                playZero(game);
+
+                break;
+            }
+            case 4:
+            {
+                printf("Saving game...\n");
+                break;
+            }
+            case 5:
+            {
+                printf("Showing Highscore...\n");
+                break;
+            }
+            case 6:
+            {
+                printf("Leaving game...\n");
+                exit(0);
                 break;
             }
             default:
             {
-                printf("\nError");
-                return 1;
+                exit(1);
+                break;
             }
         }
     }
-    while (shot_ships < num_ships);
-    showBoard(defense_board);
-    showBoard(attack_board);
-    */
 }
-

@@ -43,6 +43,13 @@
 #define MAX_READ_CHARACTERS 1000
 // Proportion of positions used by ships in the beard
 #define BOARD_USAGE_PERCENTAGE 20
+// Maximum number of characters in the input to be read
+#define MAX_CHAR_USER_INPUT 100
+
+// Number of Players
+#define ZERO_PLAYERS 0
+#define ONE_PLAYER 1
+#define TWO_PLAYERS 2
 
 
 // CONSTANT VALUES
@@ -75,14 +82,22 @@ typedef struct Position {
     //unsigned char mode;
 
 typedef struct Player {
-    unsigned char** attackBoard;  // Points to the board containing the revealed positions of the enemy
-    unsigned char** defenseBoard;  // Points to the board that contains our ships
+    char** attackBoard;  // Points to the board containing the revealed positions of the enemy
+    char** defenseBoard;  // Points to the board that contains our ships
     DoubleLinkedList tableResultMoves;  // Contains all the results from the shots of this player
+    Position lastShot;
+    unsigned int lastResult;
+    unsigned int shot_ships;
 } Player;
+
+typedef struct Game {
+    unsigned int num_players;  // Contains the number of players.
+    Player* players;
+    unsigned int dim;
+} Game;
 
 // GLOBAL VARIABLE DEFINITIONS
 extern unsigned int DIM;  // Contains the dimension of the board. Accessible globally
-
 
 // PROCEDURE-LIKE (STATIC) FUNCTIONS
 /**
@@ -252,3 +267,40 @@ void satisfyUsagePercentage();
  * Tries to read an int from the user input until it achieves it.
 */
 int readInt();
+
+
+/**
+ * Tries to read an integer in a given range from user input until the range is satisfied.
+ * The range goes from the minimum number to the maximum number including both of them.
+*/
+int readIntInRange(int minimumNumber, int maximumRange);
+
+
+/**
+ * Display the menu options in the screen
+*/
+void showMenu();
+
+/**
+ * Display the menu options in the screen
+*/
+int readMenuEntry();
+
+/**
+ * Display the menu options in the screen
+*/
+void startNewGame();
+
+/**
+ * Display the menu options in the screen
+*/
+void annotateLastShoot(char** attackBoard, unsigned int lastResult, Position lastShot);
+
+/**
+ * Returns the number of boats in num ships by size
+*/
+unsigned int getNumberOfBoats();
+
+int inputBoardDimension();
+
+void play();
