@@ -9,6 +9,19 @@ unsigned int naturalLog(unsigned int x, unsigned int base)
     return nlog - 1;
 }
 
+void* memcpy(void* dest, const void* src, size_t n)
+{
+    // Initialize pointers with implicit size of a byte
+    char* src_byte = (char*) src;
+    char* dest_byte = (char*) dest;
+
+    for (unsigned int i = 0; i < n; i++)
+    {
+        dest_byte[i] = src_byte[i];
+    }
+    return dest;
+}
+
 
 // METHOD-LIKE FUNCTIONS FOR THE BATTLESHIP GAME
 char** reserveBoard(unsigned int dim)
@@ -684,22 +697,27 @@ void initializePlayer(Player* player, unsigned int dim, unsigned char* numShipsB
 {
     player->attackBoard = reserveBoard(dim);
     player->defenseBoard = reserveBoard(dim);
+    printf("DEBUG: boards reserved\n");
     initializeBoard(player->attackBoard, dim);
+    printf("DEBUG: boards reserved\n");
     initializeBoardWithShipsAuto(player->defenseBoard, dim, numShipsBySize, shipMaxSize);
+    printf("DEBUG: boards init\n");
     player->lastResult = RESULT_INITIAL;
     player->shot_ships = 0;
 }
 
 
 
-void initializeGame(Game* game, unsigned int* dim)
+void initializeGame(Game* game)
 {
-    *dim = game->dim = inputBoardDimension();
+    game->dim = inputBoardDimension();
     game->num_players = inputPlayerAmount();
     // gameInstance->players = malloc(sizeof(Player) * 2);
     // Number of boards created
-    initializePlayer(&game->players[0], *dim, game->numShipsBySize, game->shipMaxSize);
-    initializePlayer(&game->players[1], *dim, game->numShipsBySize, game->shipMaxSize);
+    initializePlayer(&game->players[0], game->dim, game->numShipsBySize, game->shipMaxSize);
+    printf("DEBUG: initialized player 0\n");
+    initializePlayer(&game->players[1], game->dim, game->numShipsBySize, game->shipMaxSize);
+    printf("DEBUG: initialized player 1\n");
 }
 
 
@@ -749,15 +767,20 @@ void playZero(Game game)
         showBoard(game.players[0].defenseBoard, game.dim);
         showBoard(game.players[0].attackBoard, game.dim);
 
+        printf("DEBUG: enter to pause\n");
+
         pause();
 
+        printf("DEBUG: after pause and going to coompute movement\n");
         game.players[0].lastShot = computeNextMovement(game.players[0].attackBoard, game.players[0].lastShot, game.players[0].lastResult, game.dim);
+        printf("DEBUG: compute movement passed\n");
+
         game.players[0].lastResult = shoot(game.players[0].defenseBoard, game.players[0].lastShot, game.dim);
         if (game.players[0].lastResult == RESULT_SHOT || game.players[0].lastResult == RESULT_SHOT_AND_SUNK)
         {
             game.players[0].shot_ships++;
         }
-
+        printf("DEBUG: passed shoot\n");
         annotateLastShoot(game.players[0].attackBoard, game.players[0].lastResult, game.players[0].lastShot, game.dim);
     }
     while (game.players[0].shot_ships < computePositionsOccupied(game.numShipsBySize, game.shipMaxSize));
@@ -811,7 +834,9 @@ void playOne(Game game)
             game.players[1].lastShot.x = row;
             game.players[1].lastShot.y = col;
             game.players[1].lastResult = shoot(game.players[0].defenseBoard, game.players[1].lastShot, game.dim);
+            printf("DEBUG human shot\n");
             annotateLastShoot(game.players[1].attackBoard, game.players[1].lastResult, game.players[1].lastShot, game.dim);
+            printf("DEBUG anotated result\n");
 
             if (game.players[1].lastResult == RESULT_SHOT)
             {
@@ -845,9 +870,18 @@ void playOne(Game game)
 
 int main()
 {
+    /*
+     * Initialize random seed from current time to obtain a different sequence of random number generation when calling
+     * the rand() function. Set to a hardcoded number for reproducibility.
+     */
     srand(time(NULL));
     Game game;
 
+    // Initialize
+    memcpy(game.numShipsBySize, (int[]) {1, 2, 3, 4}, sizeof(game.numShipsBySize));
+    game.shipMaxSize = 4;
+
+    pause();
     while (true)
     {
         showMenu();
@@ -857,7 +891,7 @@ int main()
             case 1:
             {
                 printf("Creating new game...\n");
-                initializeGame(&game, &game.dim);
+                initializeGame(&game);
                 break;
             }
             case 2:

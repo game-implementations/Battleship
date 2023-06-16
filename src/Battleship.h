@@ -49,12 +49,6 @@
 #define MAX_CHAR_USER_INPUT 1000
 
 
-// CONSTANT VALUES
-/*
- *
- */
-
-
 // TYPE DEFINITION
 // Position in the board
 typedef struct Position {
@@ -80,12 +74,12 @@ typedef struct Game {
      * Defines the number of ships for each ship of different size. For example, NUM_SHIPS_TYPE[0] gives the number of
      * ships of size 1 that we are going to have in the game.
      */
-    unsigned char numShipsBySize[4];  // = {4, 3, 2, 1};
+    unsigned char numShipsBySize[4];
     unsigned char shipMaxSize;  // Dimension of the NUM_SHIPS_BY_SIZE array
 } Game;
 
-// PROCEDURE-LIKE (STATIC) FUNCTIONS
 
+// PROCEDURE-LIKE (STATIC) FUNCTIONS
 /**
  * Calculates the natural logarithm of a number x with a given base b
  * @param x Entry of the logarithm
@@ -94,12 +88,24 @@ typedef struct Game {
  */
 unsigned int naturalLog(unsigned int x, unsigned int b);
 
+/**
+ * Custom implementation of memcopy. It copies n bytes from the src array to the dest array.
+ *
+ * @param dest Destination array
+ * @param src Source array.
+ * @param n Number of bytes to be copied.
+ * @return Pointer to the destiny.
+ */
+void* memcpy(void* dest, const void* src, size_t n);
+
 // METHOD-LIKE FUNCTIONS FOR THE BATTLESHIP GAME
 
-/**
- * Reserves memory for a board and returns the pointer to the board.
- * @return new board
- */
+
+ /**
+  * Reserves memory for a board and returns the pointer to the board.
+  * @param dim
+  * @return Defense board.
+  */
 char** reserveBoard(unsigned int dim);
 
 /**
@@ -107,6 +113,23 @@ char** reserveBoard(unsigned int dim);
  * @param board
  */
 void initializeBoard(char** board, unsigned int dim);
+
+/**
+ *
+ * @param board game board
+ * @return true if it is correctly initialized and false if is not completely initialized
+ */
+ /**
+  * Tries to initialize the board with all the ships and returns true if has been initialized correctly and false if the
+  * board is not completely initialized.
+  *
+  * @param defense_board Board where the user puts its own boats
+  * @param dim Dimension of the matrix
+  * @param numShipsBySize Array that contains the number of ships a of a certain type
+  * @param shipMaxSize
+  * @return
+  */
+bool initializeBoardWithShipsAutoPrivate(char** defense_board, unsigned int dim, unsigned char* numShipsBySize, unsigned char shipMaxSize);
 
 /**
  * Reserves memory space for a board of the given dimensions, initializes it with WATER and the ships
