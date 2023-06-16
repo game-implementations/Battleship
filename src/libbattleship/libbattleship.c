@@ -1,4 +1,4 @@
-#include "Battleship.h"
+#include "libbattleship.h"
 
 // PROCEDURE-LIKE (STATIC) FUNCTIONS
 unsigned int naturalLog(unsigned int x, unsigned int base)
@@ -622,45 +622,7 @@ void satisfyUsagePercentage(unsigned char* numShipsBySize, unsigned char shipMax
 }
 
 
-int readInt()
-{
-    char* endptr, *readInput = calloc(MAX_CHAR_USER_INPUT, sizeof(char));
-    int number = 0;
 
-    do
-    {
-        if (fgets(readInput, MAX_CHAR_USER_INPUT, stdin) == NULL)
-        {
-            continue;
-        }
-
-        number = strtol(readInput, &endptr, 10);
-    }
-    while (*endptr != '\n');
-
-    free(readInput);
-    return number;
-}
-
-
-int readIntInRange(int minimumNumber, int maximumRange)
-{
-    int integerInRange = 0;
-    bool hasRangeError = false;
-    do
-    {
-        if (hasRangeError)
-        {
-            printf("You have given an integer out of range.\n");
-        }
-        printf("Introduce an integer from %i to %i:\t", minimumNumber, maximumRange);
-        integerInRange = readInt();
-        printf("\n");
-        hasRangeError = true;
-    }
-    while(integerInRange > maximumRange || integerInRange < minimumNumber);
-    return integerInRange;
-}
 
 
 void showMenu()
@@ -675,21 +637,21 @@ void showMenu()
 
 int readMenuEntry()
 {
-    return readIntInRange(1, 6);
+    return readIntInRange(1, 6, MAX_CHAR_USER_INPUT);
 }
 
 
 int inputBoardDimension()
 {
     printf("Enter board dimension\n");
-    int dimension = readIntInRange(8, 23);
+    int dimension = readIntInRange(8, 23, MAX_CHAR_USER_INPUT);
     return dimension;
 }
 
 int inputPlayerAmount()
 {
     printf("Enter number of players\n");
-    return readIntInRange(0, 2);
+    return readIntInRange(0, 2, MAX_CHAR_USER_INPUT);
 }
 
 
@@ -760,18 +722,24 @@ unsigned int getNumberOfBoats(unsigned char* numShipsBySize, unsigned char shipM
     return accumulator;
 }
 
+int play(Game game)
+{
+    if (game.dim) return true;
+    return false;
+}
+
 void playZero(Game game)
 {
+    readInt(100);
+    readIntInRange(1,2,100);
+
     do
     {
         showBoard(game.players[0].defenseBoard, game.dim);
         showBoard(game.players[0].attackBoard, game.dim);
 
-        printf("DEBUG: enter to pause\n");
-
         pause();
 
-        printf("DEBUG: after pause and going to coompute movement\n");
         game.players[0].lastShot = computeNextMovement(game.players[0].attackBoard, game.players[0].lastShot, game.players[0].lastResult, game.dim);
         printf("DEBUG: compute movement passed\n");
 
@@ -823,12 +791,11 @@ void playOne(Game game)
             showBoard(game.players[1].attackBoard, game.dim);
 
             printf("Introduce Row:\t");
-            int row = readIntInRange(0, game.dim - 1);
+            int row = readIntInRange(0, game.dim - 1, MAX_CHAR_USER_INPUT);
             printf("\n");
 
             printf("Introduce Column:\t");
-            // char col = getchar();
-            int col = readIntInRange(0, game.dim - 1);
+            int col = readIntInRange(0, game.dim - 1, MAX_CHAR_USER_INPUT);
             printf("\n");
 
             game.players[1].lastShot.x = row;
@@ -868,83 +835,4 @@ void playOne(Game game)
 // int calculateScore(DoubleLinkedList tableResultMoves) { }
 
 
-int main()
-{
-    /*
-     * Initialize random seed from current time to obtain a different sequence of random number generation when calling
-     * the rand() function. Set to a hardcoded number for reproducibility.
-     */
-    srand(time(NULL));
-    Game game;
 
-    // Initialize
-    memcpy(game.numShipsBySize, (int[]) {1, 2, 3, 4}, sizeof(game.numShipsBySize));
-    game.shipMaxSize = 4;
-
-    pause();
-    while (true)
-    {
-        showMenu();
-        int menuOption = readMenuEntry();
-        switch (menuOption)
-        {
-            case 1:
-            {
-                printf("Creating new game...\n");
-                initializeGame(&game);
-                break;
-            }
-            case 2:
-            {
-                printf("Loading game...\n");
-                break;
-            }
-            case 3:
-            {
-                printf("Play game...\n");
-                switch (game.num_players)
-                {
-                    case ZERO_PLAYERS:
-                    {
-                        playZero(game);
-                        break;
-                    }
-                    case ONE_PLAYER:
-                    {
-                        playOne(game);
-                        break;
-                    }
-                    case TWO_PLAYERS:
-                    {
-                        break;
-                    }
-                }
-
-
-
-                break;
-            }
-            case 4:
-            {
-                printf("Saving game...\n");
-                break;
-            }
-            case 5:
-            {
-                printf("Showing Highscore...\n");
-                break;
-            }
-            case 6:
-            {
-                printf("Leaving game...\n");
-                exit(0);
-                break;
-            }
-            default:
-            {
-                exit(1);
-                break;
-            }
-        }
-    }
-}

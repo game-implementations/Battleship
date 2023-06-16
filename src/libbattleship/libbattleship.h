@@ -1,9 +1,11 @@
-// INCLUDES
+// DYNAMIC INCLUDES
 #include <stdio.h>
 #include <stdbool.h>
 #include <stdlib.h>
 #include <time.h>
-#include "input.h"
+
+// STATIC INCLUDES
+#include "../libinput/libinput.h"
 
 // DEFINES
 // Cell symbols
@@ -240,19 +242,6 @@ void showBoard(char** board, unsigned int dim);
 void satisfyUsagePercentage(unsigned char* numShipsBySize, unsigned char shipMaxSize, unsigned int dim);
 
 /**
- * Tries to read an int from the user input until it achieves it.
-*/
-int readInt();
-
-
-/**
- * Tries to read an integer in a given range from user input until the range is satisfied.
- * The range goes from the minimum number to the maximum number including both of them.
-*/
-int readIntInRange(int minimumNumber, int maximumRange);
-
-
-/**
  * Display the menu options in the screen
 */
 void showMenu();
@@ -277,11 +266,23 @@ void annotateLastShoot(char** attackBoard, unsigned int lastResult, Position las
 */
 unsigned int getNumberOfBoats(unsigned char* numShipsBySize, unsigned char shipMaxSize);
 
+/**
+ * Performs the algorithm of the game depending on the type of game passed by parameter.
+ *
+ * @param game Instance of the game.
+ * @return Returns false if the game is not finished and true if it is.
+ */
+int play(Game game);
+
+void playZero(Game game);
+
+void playOne(Game game);
+
 int inputBoardDimension();
 
-void play();
-
 void initializePlayer(Player* player, unsigned int dim, unsigned char* numShipsBySize, unsigned char shipMaxSize);
+
+void initializeGame(Game* game);
 
 void readChar();
 
