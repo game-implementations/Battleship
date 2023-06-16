@@ -730,6 +730,7 @@ int play(Game game)
 
 void playZero(Game game)
 {
+    pauseExecution();
     readInt(100);
     readIntInRange(1,2,100);
 
@@ -738,7 +739,7 @@ void playZero(Game game)
         showBoard(game.players[0].defenseBoard, game.dim);
         showBoard(game.players[0].attackBoard, game.dim);
 
-        pause();
+        pauseExecution();
 
         game.players[0].lastShot = computeNextMovement(game.players[0].attackBoard, game.players[0].lastShot, game.players[0].lastResult, game.dim);
         printf("DEBUG: compute movement passed\n");

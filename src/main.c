@@ -1,4 +1,3 @@
-#include "libinput/libinput.h"
 #include "libbattleship/libbattleship.h"
 
 int main()

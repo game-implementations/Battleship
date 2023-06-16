@@ -5,7 +5,7 @@
 /**
  * Pauses the code
  */
-void pause();
+void pauseExecution();
 
 /**
  * Tries to read an int from the user input until it achieves it.

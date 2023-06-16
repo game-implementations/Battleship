@@ -38,7 +38,7 @@ $(OBJ_DIR)/main.o : main.c
 # Battleship binary
 $(BIN_DIR)/Battleship : $(OBJ_DIR)/main.o $(BATTLESHIP_LIB) $(INPUT_LIB)
 	mkdir -p $(BIN_DIR)
-	$(CC) $(CFLAGS) -static -o $(BIN_DIR)/Battleship $(OBJ_DIR)/main.o $(INPUT_LIB) $(BATTLESHIP_LIB)
+	$(CC) $(CFLAGS) -static -o $(BIN_DIR)/Battleship $(OBJ_DIR)/main.o $(BATTLESHIP_LIB) $(INPUT_LIB)
 	chmod 111 $(BIN_DIR)/Battleship
 
 # Run Battleship binary

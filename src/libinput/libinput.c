@@ -1,6 +1,6 @@
 #include "libinput.h"
 
-void pause()
+void pauseExecution()
 {
     char a;
     if (scanf("%c", &a))
