@@ -103,8 +103,6 @@ void initializeBoardWithShipsAuto(char** board, unsigned int dim, unsigned char*
                 board[i][j] = WATER;
 }
 
-// void initializeBoardWithShipsManual(char** board) { }
-
 void initializeShip(char** defense_board, Position ini, unsigned int ship_size, bool orientation)
 {
     Position end;
@@ -657,29 +655,36 @@ int inputPlayerAmount()
 
 void initializePlayer(Player* player, unsigned int dim, unsigned char* numShipsBySize, unsigned char shipMaxSize)
 {
+    // Reserve memory for the two boards
     player->attackBoard = reserveBoard(dim);
     player->defenseBoard = reserveBoard(dim);
-    printf("DEBUG: boards reserved\n");
+
+    // Initialize attack board as a not discovered cell
     initializeBoard(player->attackBoard, dim);
-    printf("DEBUG: boards reserved\n");
+
+    // Put ships on the defense board TODO: add manual selection
     initializeBoardWithShipsAuto(player->defenseBoard, dim, numShipsBySize, shipMaxSize);
-    printf("DEBUG: boards init\n");
+
     player->lastResult = RESULT_INITIAL;
     player->shot_ships = 0;
+
 }
 
 
 
 void initializeGame(Game* game)
 {
+    // Get size of the board from the user
     game->dim = inputBoardDimension();
+
+    // Get the number of players: 0 for machine vs machine, 1 for human vs machine and 2 for human vs human
     game->num_players = inputPlayerAmount();
-    // gameInstance->players = malloc(sizeof(Player) * 2);
-    // Number of boards created
+    for (unsigned int i = 0; i < game->num_players; i++)
+        game->players[i].isHuman = true;
+
+    // Initialize player instances
     initializePlayer(&game->players[0], game->dim, game->numShipsBySize, game->shipMaxSize);
-    printf("DEBUG: initialized player 0\n");
     initializePlayer(&game->players[1], game->dim, game->numShipsBySize, game->shipMaxSize);
-    printf("DEBUG: initialized player 1\n");
 }
 
 
@@ -722,12 +727,6 @@ unsigned int getNumberOfBoats(unsigned char* numShipsBySize, unsigned char shipM
     return accumulator;
 }
 
-int play(Game game)
-{
-    if (game.dim) return true;
-    return false;
-}
-
 void playZero(Game game)
 {
     pauseExecution();
@@ -757,6 +756,83 @@ void playZero(Game game)
     showBoard(game.players[0].attackBoard, game.dim);
 }
 
+
+/*
+ * For the returning state of playTurn in order to let the user control the flow of algorithm in order to go back to the
+ * menu when playing.
+ * */
+int playTurn(Game* game, unsigned int playerNumber, bool* isPlayerOneTurn)
+{
+    // If we are human, or we are in machine vs machine show the boards of the player
+    if (game->players[playerNumber].isHuman || (!game->players[0].isHuman && !game->players[1].isHuman))
+    {
+        showBoard(game->players[playerNumber].defenseBoard, game->dim);
+        showBoard(game->players[playerNumber].attackBoard, game->dim);
+    }
+
+    // Let the player choose a position to attack if it is a human via user input
+    if (game->players[playerNumber].isHuman)
+    {
+        printf("Introduce Row:\t");
+        int row = readIntInRange(0, game->dim - 1, MAX_CHAR_USER_INPUT);
+        printf("\n");
+
+        printf("Introduce Column:\t");
+        int col = readIntInRange(0, game->dim - 1, MAX_CHAR_USER_INPUT);
+        printf("\n");
+
+        game->players[playerNumber].lastShot.x = row;
+        game->players[playerNumber].lastShot.y = col;
+    }
+    else  // If the player is a machine compute automatically the most optimal position to attack
+    {
+        game->players[playerNumber].lastShot = computeNextMovement(game->players[playerNumber].attackBoard, game->players[playerNumber].lastShot, game->players[playerNumber].lastResult, game->dim);
+    }
+
+    // Perform the shoot on the table of the adversary player
+    game->players[playerNumber].lastResult = shoot(game->players[playerNumber].defenseBoard, game->players[playerNumber].lastShot, game->dim);
+    // Annotate the result on the attack board of the current player
+    annotateLastShoot(game->players[playerNumber].attackBoard, game->players[playerNumber].lastResult, game->players[playerNumber].lastShot, game->dim);
+    printf("The player 0 has shot the position %i %i. The result is %i.\n", game->players[playerNumber].lastShot.x, game->players[playerNumber].lastShot.y, game->players[playerNumber].lastResult);
+
+    if (game->players[playerNumber].lastResult == RESULT_SHOT)
+    {
+        game->players[playerNumber].shot_ships++;
+        *isPlayerOneTurn = playerNumber;
+        printf("The player 0 has shot a boat. It is his turn again.\n");
+    }
+    else if (game->players[playerNumber].lastResult == RESULT_SHOT_AND_SUNK)
+    {
+        game->players[playerNumber].shot_ships++;
+        *isPlayerOneTurn = playerNumber;
+        printf("The player 0 has sunk a boat. It is his turn again.\n");
+    }
+    else
+    {
+        *isPlayerOneTurn = playerNumber ? true : false;
+    }
+    return
+}
+
+int play(Game game)
+{
+    // TODO build algorithm with lucky game to throw a coin
+    bool isPlayerOneTurn = false;
+    do
+    {
+        if (isPlayerOneTurn)
+        {
+            playTurn(&game, 1, &isPlayerOneTurn);
+        }
+        else
+        {
+            playTurn(&game, 0, &isPlayerOneTurn);
+        }
+    }
+    while (game.players[0].shot_ships < computePositionsOccupied(game.numShipsBySize, game.shipMaxSize)
+           && game.players[1].shot_ships < computePositionsOccupied(game.numShipsBySize, game.shipMaxSize));
+}
+
 void playOne(Game game)
 {
     bool isPlayerZeroTurn = false;
@@ -764,20 +840,20 @@ void playOne(Game game)
     {
         if (isPlayerZeroTurn)
         {
-            game.players[0].lastShot = computeNextMovement(game.players[0].attackBoard, game.players[0].lastShot, game.players[0].lastResult, game.dim);
-            game.players[0].lastResult = shoot(game.players[1].defenseBoard, game.players[0].lastShot, game.dim);
-            annotateLastShoot(game.players[0].attackBoard, game.players[0].lastResult, game.players[0].lastShot, game.dim);
-            printf("The machine has shot the position %i %i. The result is %i.\n", game.players[0].lastShot.x, game.players[0].lastShot.y, game.players[0].lastResult);
+            game.players[1].lastShot = computeNextMovement(game.players[1].attackBoard, game.players[1].lastShot, game.players[1].lastResult, game.dim);
+            game.players[1].lastResult = shoot(game.players[0].defenseBoard, game.players[1].lastShot, game.dim);
+            annotateLastShoot(game.players[1].attackBoard, game.players[1].lastResult, game.players[1].lastShot, game.dim);
+            printf("The machine has shot the position %i %i. The result is %i.\n", game.players[1].lastShot.x, game.players[1].lastShot.y, game.players[1].lastResult);
 
-            if (game.players[0].lastResult == RESULT_SHOT)
+            if (game.players[1].lastResult == RESULT_SHOT)
             {
-                game.players[0].shot_ships++;
+                game.players[1].shot_ships++;
                 isPlayerZeroTurn = true;
                 printf("The machine has shot a boat. It is his turn again.\n");
             }
-            else if (game.players[0].lastResult == RESULT_SHOT_AND_SUNK)
+            else if (game.players[1].lastResult == RESULT_SHOT_AND_SUNK)
             {
-                game.players[0].shot_ships++;
+                game.players[1].shot_ships++;
                 isPlayerZeroTurn = true;
                 printf("The machine has sunk a boat. It is his turn again.\n");
             }
@@ -788,8 +864,8 @@ void playOne(Game game)
         }
         else  // This is the human player
         {
-            showBoard(game.players[1].defenseBoard, game.dim);
-            showBoard(game.players[1].attackBoard, game.dim);
+            showBoard(game.players[0].defenseBoard, game.dim);
+            showBoard(game.players[0].attackBoard, game.dim);
 
             printf("Introduce Row:\t");
             int row = readIntInRange(0, game.dim - 1, MAX_CHAR_USER_INPUT);
@@ -799,23 +875,23 @@ void playOne(Game game)
             int col = readIntInRange(0, game.dim - 1, MAX_CHAR_USER_INPUT);
             printf("\n");
 
-            game.players[1].lastShot.x = row;
-            game.players[1].lastShot.y = col;
-            game.players[1].lastResult = shoot(game.players[0].defenseBoard, game.players[1].lastShot, game.dim);
+            game.players[0].lastShot.x = row;
+            game.players[0].lastShot.y = col;
+            game.players[0].lastResult = shoot(game.players[1].defenseBoard, game.players[0].lastShot, game.dim);
             printf("DEBUG human shot\n");
-            annotateLastShoot(game.players[1].attackBoard, game.players[1].lastResult, game.players[1].lastShot, game.dim);
+            annotateLastShoot(game.players[0].attackBoard, game.players[0].lastResult, game.players[0].lastShot, game.dim);
             printf("DEBUG anotated result\n");
 
-            if (game.players[1].lastResult == RESULT_SHOT)
+            if (game.players[0].lastResult == RESULT_SHOT)
             {
-                game.players[1].shot_ships++;
+                game.players[0].shot_ships++;
                 isPlayerZeroTurn = false;
                 printf("The human has shot a boat. It is his turn again.\n");
 
             }
-            else if (game.players[1].lastResult == RESULT_SHOT_AND_SUNK)
+            else if (game.players[0].lastResult == RESULT_SHOT_AND_SUNK)
             {
-                game.players[1].shot_ships++;
+                game.players[0].shot_ships++;
                 isPlayerZeroTurn = false;
                 printf("The human has sunk a boat. It is his turn again.\n");
             }
@@ -829,9 +905,9 @@ void playOne(Game game)
             && game.players[1].shot_ships < computePositionsOccupied(game.numShipsBySize, game.shipMaxSize));
 }
 
-
+// TODO
+// void initializeBoardWithShipsManual(char** board) { }
 // void loadRecords(DoubleLinkedList* records) { }
-
 // void saveRecords(DoubleLinkedList records) { }
 // int calculateScore(DoubleLinkedList tableResultMoves) { }
 

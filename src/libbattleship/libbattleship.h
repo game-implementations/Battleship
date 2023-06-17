@@ -65,6 +65,7 @@ typedef struct Player {
     Position lastShot;
     unsigned int lastResult;
     unsigned int shot_ships;
+    bool isHuman;  // True if the actions of the player have to be controlled with user input
 } Player;
 
 // Contains the data of an initialized game
@@ -267,7 +268,8 @@ void annotateLastShoot(char** attackBoard, unsigned int lastResult, Position las
 unsigned int getNumberOfBoats(unsigned char* numShipsBySize, unsigned char shipMaxSize);
 
 /**
- * Performs the algorithm of the game depending on the type of game passed by parameter.
+ * Performs the algorithm of the game depending on the type of game passed by parameter. Returns true if the game is
+ * finished.
  *
  * @param game Instance of the game.
  * @return Returns false if the game is not finished and true if it is.
@@ -275,6 +277,16 @@ unsigned int getNumberOfBoats(unsigned char* numShipsBySize, unsigned char shipM
 int play(Game game);
 
 void playZero(Game game);
+
+/**
+ * This function simulates a turn with a player and works as an helper function for the play function
+ *
+ * @param game
+ * @param playerNumber
+ * @param isPlayerOneTurn
+ * @return
+ */
+int playTurn(Game* game, unsigned int playerNumber, bool* isPlayerOneTurn);
 
 void playOne(Game game);
 
