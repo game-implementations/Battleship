@@ -811,13 +811,17 @@ int playTurn(Game* game, unsigned int playerNumber, bool* isPlayerOneTurn)
     {
         *isPlayerOneTurn = playerNumber ? true : false;
     }
-    return
+    return 0;
 }
 
 int play(Game game)
 {
-    // TODO build algorithm with lucky game to throw a coin
     bool isPlayerOneTurn = false;
+    if (game.num_players == 1)
+    {
+        isPlayerOneTurn = !throwCoin();
+    }
+
     do
     {
         if (isPlayerOneTurn)
@@ -831,6 +835,8 @@ int play(Game game)
     }
     while (game.players[0].shot_ships < computePositionsOccupied(game.numShipsBySize, game.shipMaxSize)
            && game.players[1].shot_ships < computePositionsOccupied(game.numShipsBySize, game.shipMaxSize));
+
+    return 0;
 }
 
 void playOne(Game game)
@@ -903,6 +909,73 @@ void playOne(Game game)
     }
     while (game.players[0].shot_ships < computePositionsOccupied(game.numShipsBySize, game.shipMaxSize)
             && game.players[1].shot_ships < computePositionsOccupied(game.numShipsBySize, game.shipMaxSize));
+}
+
+int columnToIndex(char letter, unsigned int dim)
+{
+    if (!isCharInRange(letter, 'A', 'A' + dim - 1))
+    {
+        return ERROR_PARAMETER_OUT_OF_RANGE;
+    }
+    return letter - 'A';
+}
+
+char indexToColumn(int index, unsigned int dim)
+{
+    if (!isIntInRange(index, 0, dim -1))
+    {
+        return ERROR_PARAMETER_OUT_OF_RANGE;
+    }
+    return 'A' + index;
+}
+
+
+int rowToIndex(int row, unsigned int dim)
+{
+    if (!isIntInRange(row, 1, dim))
+    {
+        return ERROR_PARAMETER_OUT_OF_RANGE;
+    }
+    return row - 1;
+}
+
+int indexToRow(int index, unsigned int dim)
+{
+    if (!isIntInRange(index, 0, dim - 1))
+    {
+        return ERROR_PARAMETER_OUT_OF_RANGE;
+    }
+    return index + 1;
+}
+
+bool throwCoin()
+{
+    printf("Choose head (H) or tails (T):\t");
+    int coinChoiceValue;
+    char options[2];
+     options[0] = 'H';
+     options[1] = 'T';
+    char coinChoice = readCharInSet(options, 2);
+    if (coinChoice == 'T')
+    {
+        coinChoiceValue = TAILS;
+    }
+    else
+    {
+        coinChoiceValue = HEADS;
+    }
+    printf("\n");
+
+    if (rand() % 2 == coinChoiceValue)
+    {
+        printf("You won, first turn is yours.");
+        return true;
+    }
+    else
+    {
+        printf("You lost, first turn is the enemy.");
+        return false;
+    }
 }
 
 // TODO

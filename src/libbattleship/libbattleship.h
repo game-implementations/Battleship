@@ -42,6 +42,10 @@
 #define ONE_PLAYER 1
 #define TWO_PLAYERS 2
 
+// COIN VALUES
+#define HEADS 1
+#define TAILS 0
+
 // Magic numbers
 // Number of tries when fitting a ship into the board before reinitializing the board again
 #define AUTO_SHIP_PLACEMENT_MAX_TRIES 100000
@@ -50,6 +54,8 @@
 // Maximum number of characters in the user input to be read
 #define MAX_CHAR_USER_INPUT 1000
 
+// Error code for translate functions
+#define ERROR_PARAMETER_OUT_OF_RANGE -1
 
 // TYPE DEFINITION
 // Position in the board
@@ -296,7 +302,35 @@ void initializePlayer(Player* player, unsigned int dim, unsigned char* numShipsB
 
 void initializeGame(Game* game);
 
-void readChar();
+/**
+  * You send a char representing a column of the board and returns the correspondant position to index in the array of
+  the board. Returns ERROR_PARAMETER_OUT_OF_RANGE if the letter does not exist for the supplied dimension.
+*/
+int columnToIndex(char letter, unsigned int dim);
+
+/**
+  * It receives an int that indexes the columns of the board. It returns the character representing the column for the
+  received index. Returns ERROR_PARAMETER_OUT_OF_RANGE if the index does not exist for the supplied dimension.
+*/
+char indexToColumn(int index, unsigned int dim);
+
+
+/**
+  * You send a int representing a row of the board and returns the correspondant position to index in the array of
+  the board. Returns ERROR_PARAMETER_OUT_OF_RANGE if the row does not exist for the supplied dimension.
+*/
+int rowToIndex(int row, unsigned int dim);
+
+/**
+  * It receives an int that indexes the rows of the board. It returns the integer representing the row for the
+  received index. Returns ERROR_PARAMETER_OUT_OF_RANGE if the index does not exist for the supplied dimension.
+*/
+int indexToRow(int index, unsigned int dim);
+
+/**
+ * It asks for head or tails to flip a coin and tell you if you win or lost.
+*/
+bool throwCoin();
 
 /**
  * Calculates the final points for the info of the shoots of a certain player.

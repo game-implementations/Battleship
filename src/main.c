@@ -7,6 +7,7 @@ int main()
      * the rand() function. Set to a hardcoded number for reproducibility.
      */
     srand(time(NULL));
+
     Game game;
 
     // Initialize
