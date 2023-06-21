@@ -34,23 +34,7 @@ int main()
             case 3:
             {
                 printf("Play game...\n");
-                switch (game.num_players)
-                {
-                    case ZERO_PLAYERS:
-                    {
-                        playZero(game);
-                        break;
-                    }
-                    case ONE_PLAYER:
-                    {
-                        playOne(game);
-                        break;
-                    }
-                    case TWO_PLAYERS:
-                    {
-                        break;
-                    }
-                }
+                play(game);
                 break;
             }
             case 4:

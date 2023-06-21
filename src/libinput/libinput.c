@@ -115,7 +115,7 @@ char readCharInSet(char* characterSet, int numCharacterSet)
     {
         if (hasSetError)
         {
-            printf("You have given a char out of range. Try again. \n");
+            printf("You have given a char out of range. Try again.\n");
         }
         readCharacter = readChar();
         hasSetError = !isCharInSet(readCharacter, characterSet, numCharacterSet);
