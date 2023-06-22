@@ -676,14 +676,27 @@ void initializeGame(Game* game)
 {
     // Get size of the board from the user
     game->dim = inputBoardDimension();
-
+    printf("looool");
     // Get the number of players: 0 for machine vs machine, 1 for human vs machine and 2 for human vs human
     game->num_players = inputPlayerAmount();
+    printf("HELLO PACOO");
     game->players[0].isHuman = false;
     game->players[1].isHuman = false;
     for (unsigned int i = 0; i < game->num_players; i++)
         game->players[i].isHuman = true;
+    printf("OLA PACOO");
 
+    // Set the number of ships of each size for the game
+    game->shipMaxSize = 4;
+    printf("gameee antes malloc");
+    game->numShipsBySize = malloc(sizeof(unsigned char) * game->shipMaxSize);
+    printf("mallocccc");
+    for (unsigned int i = 0; i < game->shipMaxSize; i++)
+    {
+        game->numShipsBySize[i] = i + 1;
+    }
+
+    printf("kllksisn" );
     // Initialize player instances
     initializePlayer(&game->players[0], game->dim, game->numShipsBySize, game->shipMaxSize);
     initializePlayer(&game->players[1], game->dim, game->numShipsBySize, game->shipMaxSize);
@@ -742,8 +755,11 @@ int playTurn(Game* game, unsigned int playerNumber, bool* isPlayerOneTurn)
     // If we are human, or we are in machine vs machine show the boards of the player
     if (game->players[playerNumber].isHuman || (!game->players[0].isHuman && !game->players[1].isHuman))
     {
-        showBoard(game->players[playerNumber].defenseBoard, game->dim);
+        printf("\n*** ATTACK BOARD PLAYER %i ***", playerNumber + 1);
         showBoard(game->players[playerNumber].attackBoard, game->dim);
+        printf("\n*** DEFENSE BOARD PLAYER %i ***", playerNumber + 1 );
+        showBoard(game->players[playerNumber].defenseBoard, game->dim);
+
     }
 
     // Let the player choose a position to attack if it is a human via user input
@@ -793,6 +809,12 @@ int playTurn(Game* game, unsigned int playerNumber, bool* isPlayerOneTurn)
 int play(Game game)
 {
     bool isPlayerOneTurn = false;
+
+    showBoard(game.players[0].attackBoard, game.dim);
+    showBoard(game.players[0].defenseBoard, game.dim);
+    showBoard(game.players[1].attackBoard, game.dim);
+    showBoard(game.players[1].defenseBoard, game.dim);
+    pauseExecution();
 
     if (game.num_players == 0)
     {

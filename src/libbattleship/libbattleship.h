@@ -57,6 +57,13 @@
 // Error code for translate functions
 #define ERROR_PARAMETER_OUT_OF_RANGE -1
 
+
+// CONSTANTS
+// Default number of ships by size.
+// unsigned char defaultNumShipsBySize[4];
+// unsigned char defaultShipMaxSize;  // Dimension of the NUM_SHIPS_BY_SIZE array
+
+
 // TYPE DEFINITION
 // Position in the board
 typedef struct Position {
@@ -83,7 +90,7 @@ typedef struct Game {
      * Defines the number of ships for each ship of different size. For example, NUM_SHIPS_TYPE[0] gives the number of
      * ships of size 1 that we are going to have in the game.
      */
-    unsigned char numShipsBySize[4];
+    unsigned char* numShipsBySize;
     unsigned char shipMaxSize;  // Dimension of the NUM_SHIPS_BY_SIZE array
 } Game;
 

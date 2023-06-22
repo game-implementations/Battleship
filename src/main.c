@@ -10,10 +10,6 @@ int main()
 
     Game game;
 
-    // Initialize
-    memcpy(game.numShipsBySize, (int[]) {1, 2, 3, 4}, sizeof(game.numShipsBySize));
-    game.shipMaxSize = 4;
-
     while (true)
     {
         showMenu();
