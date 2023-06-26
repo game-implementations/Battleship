@@ -51,8 +51,6 @@
 #define AUTO_SHIP_PLACEMENT_MAX_TRIES 100000
 // Proportion of positions used by ships in the board
 #define BOARD_USAGE_PERCENTAGE 20
-// Maximum number of characters in the user input to be read
-#define MAX_CHAR_USER_INPUT 1000
 
 // Error code for translate functions
 #define ERROR_PARAMETER_OUT_OF_RANGE -1
@@ -92,6 +90,7 @@ typedef struct Game {
      */
     unsigned char* numShipsBySize;
     unsigned char shipMaxSize;  // Dimension of the NUM_SHIPS_BY_SIZE array
+    bool isGameInitialized;  // True: if the game is initialized and can be played; False: Otherwise.
 } Game;
 
 
@@ -257,13 +256,14 @@ void satisfyUsagePercentage(unsigned char* numShipsBySize, unsigned char shipMax
 
 /**
  * Display the menu options in the screen
+ * game.isGameInitialized boolean value as an argument
 */
-void showMenu();
+void showMenu(bool isGameInitialized);
 
 /**
  * Display the menu options in the screen
 */
-int readMenuEntry();
+int readMenuEntry(bool isGameInitialized);
 
 /**
  * Display the menu options in the screen

@@ -619,23 +619,31 @@ void satisfyUsagePercentage(unsigned char* numShipsBySize, unsigned char shipMax
 
 }
 
-
-
-
-
-void showMenu()
+void showMenu(bool isGameInitialized)
 {
-    printf("\n1. Create new game\n");
+    printf("\n");
+    printf("1. Create new game\n");
     printf("2. Load game\n");
-    printf("3. Play game\n");
-    printf("4. Save game\n");
+    if (isGameInitialized)
+    {
+        printf("3. Play game\n");
+        printf("4. Save game\n");
+    }
     printf("5. Highscore\n");
     printf("6. Quit\n");
 }
 
-int readMenuEntry()
+int readMenuEntry(bool isGameInitialized)
 {
-    return readIntInRange(1, 6, MAX_CHAR_USER_INPUT);
+    if (isGameInitialized)
+    {
+        return readIntInRange(1, 6, MAX_CHAR_USER_INPUT);
+    }
+    else
+    {
+        int validMenuOptions[] = {1, 2, 5, 6};
+        return readIntInSet(validMenuOptions, 4, MAX_CHAR_USER_INPUT);
+    }
 }
 
 
@@ -676,27 +684,21 @@ void initializeGame(Game* game)
 {
     // Get size of the board from the user
     game->dim = inputBoardDimension();
-    printf("looool");
     // Get the number of players: 0 for machine vs machine, 1 for human vs machine and 2 for human vs human
     game->num_players = inputPlayerAmount();
-    printf("HELLO PACOO");
     game->players[0].isHuman = false;
     game->players[1].isHuman = false;
     for (unsigned int i = 0; i < game->num_players; i++)
         game->players[i].isHuman = true;
-    printf("OLA PACOO");
 
     // Set the number of ships of each size for the game
     game->shipMaxSize = 4;
-    printf("gameee antes malloc");
     game->numShipsBySize = malloc(sizeof(unsigned char) * game->shipMaxSize);
-    printf("mallocccc");
     for (unsigned int i = 0; i < game->shipMaxSize; i++)
     {
         game->numShipsBySize[i] = i + 1;
     }
 
-    printf("kllksisn" );
     // Initialize player instances
     initializePlayer(&game->players[0], game->dim, game->numShipsBySize, game->shipMaxSize);
     initializePlayer(&game->players[1], game->dim, game->numShipsBySize, game->shipMaxSize);

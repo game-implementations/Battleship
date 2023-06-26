@@ -128,3 +128,32 @@ bool isIntInRange(int letter, int minimumInt, int maximumInt)
 {
     return letter >= minimumInt && letter <= maximumInt;
 }
+
+int readIntInSet(int* integerSet, int numIntegerSet, unsigned int maximum_characters_accepted)
+{
+    int readInteger;
+    bool hasSetError = false;
+    do
+    {
+        if (hasSetError)
+        {
+            printf("You have given a int out of range. Try again.\n");
+        }
+        readInteger = readInt(maximum_characters_accepted);
+        hasSetError = !isIntInSet(readInteger, integerSet, numIntegerSet);
+    }
+    while(hasSetError);
+    return readInteger;
+}
+
+bool isIntInSet(int integer, int* integerSet, int numIntegerSet)
+{
+    for (int i = 0; i < numIntegerSet; i++)
+    {
+        if (integerSet[i] == integer)
+        {
+            return true;
+        }
+    }
+    return false;
+}

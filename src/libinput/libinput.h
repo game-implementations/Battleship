@@ -2,6 +2,9 @@
 #include <stdlib.h>
 #include <stdbool.h>
 
+// Maximum number of characters in the user input to be read
+#define MAX_CHAR_USER_INPUT 1000
+
 /**
  * Pauses the code
  */
@@ -17,6 +20,21 @@ int readInt(unsigned int maximum_characters_accepted);
  * The range goes from the minimum number to the maximum number including both of them.
 */
 int readIntInRange(int minimumNumber, int maximumRange, unsigned int maximum_characters_accepted);
+
+/**
+ *
+*/
+int readIntInSet(int* integerSet, int numIntegerSet, unsigned int maximum_characters_accepted);
+
+/**
+ *
+*/
+bool isIntInSet(int integer, int* integerSet, int numIntegerSet);
+
+/**
+ *
+*/
+bool isIntInRange(int index, int minimumInt, int maximumInt);
 
 /**
  * Tries to read a char from the user input until it achieves it.
@@ -38,10 +56,6 @@ char readCharInSet(char* characterSet, int numCharacterSet);
 */
 void flushStdin();
 
-/**
- *
-*/
-bool isIntInRange(int index, int minimumInt, int maximumInt);
 
 /**
  *

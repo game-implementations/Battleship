@@ -9,28 +9,32 @@ int main()
     srand(time(NULL));
 
     Game game;
+    game.isGameInitialized = false;
 
     while (true)
     {
-        showMenu();
-        int menuOption = readMenuEntry();
+        showMenu(game.isGameInitialized);
+        int menuOption = readMenuEntry(game.isGameInitialized);
         switch (menuOption)
         {
             case 1:
             {
                 printf("Creating new game...\n");
                 initializeGame(&game);
+                game.isGameInitialized = true;
                 break;
             }
             case 2:
             {
                 printf("Loading game...\n");
+                game.isGameInitialized = true;
                 break;
             }
             case 3:
             {
                 printf("Play game...\n");
                 play(game);
+                game.isGameInitialized = false;
                 break;
             }
             case 4:
