@@ -997,7 +997,37 @@ bool throwCoin()
     }
 }
 
+DoubleLinkedList* initializeRecords()
+{
+    DoubleLinkedList* records = create(sizeof(Record));
+    return records;
+}
+
+int compareRecords(void * recordA, void * recordB)
+{
+    return ((Record*) recordA)->score - ((Record*) recordB)->score;
+}
+
+void addRecord(DoubleLinkedList* records, Record record)
+{
+    sortedAdd(records, (void*) &record, compareRecords);
+}
+
+void showRecord(void * record)
+{
+    printf("%s\t%i\n", ((Record*) record)->playerName, ((Record*) record)->score);
+}
+
+void showRecords(DoubleLinkedList records)
+{
+    printf("\n");
+    printf("HIGH SCORES\n");
+    toScreen(records, showRecord);
+}
+
 // TODO
+
+
 // void initializeBoardWithShipsManual(char** board) { }
 // void loadRecords(DoubleLinkedList* records) { }
 // void saveRecords(DoubleLinkedList records) { }

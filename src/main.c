@@ -8,6 +8,45 @@ int main()
      */
     srand(time(NULL));
 
+
+    DoubleLinkedList* records = initializeRecords();
+    Record recordTest;
+    Record recordPaco;
+    Record recordMaria;
+    Record recordDani;
+
+    char playerName[] = "jose\0";
+    recordTest.playerName = malloc(sizeof(char) * MAX_CHAR_USER_INPUT);
+    // void* memcpy(void* dest, const void* src, size_t n);
+    memcpy((void*) recordTest.playerName, (void *) playerName, 5);
+
+    recordTest.score = 31;
+    recordPaco.score = 335;
+    recordMaria.score = 333;
+    recordDani.score = 3;
+    char pacoName[] = "paco\0";
+    recordPaco.playerName = malloc(sizeof(char) * MAX_CHAR_USER_INPUT);
+    // void* memcpy(void* dest, const void* src, size_t n);
+    memcpy((void*) recordPaco.playerName, (void *) pacoName, 5);
+    char mariaName[] = "maria\0";
+    recordMaria.playerName = malloc(sizeof(char) * MAX_CHAR_USER_INPUT);
+    // void* memcpy(void* dest, const void* src, size_t n);
+    memcpy((void*) recordMaria.playerName, (void *) mariaName, 5);
+    char daniName[] = "dani\0";
+    recordDani.playerName = malloc(sizeof(char) * MAX_CHAR_USER_INPUT);
+    // void* memcpy(void* dest, const void* src, size_t n);
+    memcpy((void*) recordDani.playerName, (void *) daniName, 5);
+
+
+    addRecord(records, recordTest);
+    addRecord(records, recordPaco);
+    addRecord(records, recordMaria);
+    addRecord(records, recordDani);
+    addRecord(records, recordTest);
+
+    showRecords(*records);
+
+
     Game game;
     game.isGameInitialized = false;
 

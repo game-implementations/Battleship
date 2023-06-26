@@ -19,6 +19,8 @@ BATTLESHIP_LIB=$(LIB_DIR)/libbattleship.a
 BATTLESHIP_LIB_DIR=libbattleship
 INPUT_LIB=$(LIB_DIR)/libinput.a
 INPUT_LIB_DIR=libinput
+DOUBLELINKEDLIST_LIB=$(LIB_DIR)/libdoublelinkedlist.a
+DOUBLELINKEDLIST_LIB_DIR=libdoublelinkedlist
 
 # Main target
 all : $(BIN_DIR)/Battleship
@@ -31,14 +33,18 @@ $(INPUT_LIB) : $(INPUT_LIB_DIR)/libinput.c $(INPUT_LIB_DIR)/libinput.h
 $(BATTLESHIP_LIB) : $(BATTLESHIP_LIB_DIR)/libbattleship.c $(BATTLESHIP_LIB_DIR)/libbattleship.h
 	cd $(BATTLESHIP_LIB_DIR); make
 
+# Double Linked List library
+$(DOUBLELINKEDLIST_LIB) : $(DOUBLELINKEDLIST_LIB_DIR)/libdoublelinkedlist.c $(DOUBLELINKEDLIST_LIB_DIR)/libdoublelinkedlist.h
+	cd $(DOUBLELINKEDLIST_LIB_DIR); make
+
 $(OBJ_DIR)/main.o : main.c
 	mkdir -p $(OBJ_DIR)
 	$(CC) $(CFLAGS) -o $(OBJ_DIR)/main.o -c main.c
 
 # Battleship binary
-$(BIN_DIR)/Battleship : $(OBJ_DIR)/main.o $(BATTLESHIP_LIB) $(INPUT_LIB)
+$(BIN_DIR)/Battleship : $(OBJ_DIR)/main.o $(BATTLESHIP_LIB) $(INPUT_LIB) $(DOUBLELINKEDLIST_LIB)
 	mkdir -p $(BIN_DIR)
-	$(CC) $(CFLAGS) -static -o $(BIN_DIR)/Battleship $(OBJ_DIR)/main.o $(BATTLESHIP_LIB) $(INPUT_LIB)
+	$(CC) $(CFLAGS) -static -o $(BIN_DIR)/Battleship $(OBJ_DIR)/main.o $(BATTLESHIP_LIB) $(INPUT_LIB) $(DOUBLELINKEDLIST_LIB)
 	chmod 111 $(BIN_DIR)/Battleship
 
 # Run Battleship binary

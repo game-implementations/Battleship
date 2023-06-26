@@ -6,6 +6,7 @@
 
 // STATIC INCLUDES
 #include "../libinput/libinput.h"
+#include "../libdoublelinkedlist/libdoublelinkedlist.h"
 
 // DEFINES
 // Cell symbols
@@ -92,6 +93,13 @@ typedef struct Game {
     unsigned char shipMaxSize;  // Dimension of the NUM_SHIPS_BY_SIZE array
     bool isGameInitialized;  // True: if the game is initialized and can be played; False: Otherwise.
 } Game;
+
+
+// Contains the data of a Record
+typedef struct Record {
+    char* playerName;
+    int score;
+} Record;
 
 
 // PROCEDURE-LIKE (STATIC) FUNCTIONS
@@ -339,12 +347,25 @@ int indexToRow(int index, unsigned int dim);
 */
 bool throwCoin();
 
+
+DoubleLinkedList* initializeRecords();
+
+
 /**
  * Calculates the final points for the info of the shoots of a certain player.
  * @param tableResultMoves
  * @return
  */
 //int calculateScore(DoubleLinkedList tableResultMoves);
+
+
+void addRecord(DoubleLinkedList* records, Record record);
+
+void showRecord(void * record);
+
+int compareRecords(void * recordA, void * recordB);
+
+void showRecords(DoubleLinkedList records);
 
 /**
  * Retrieves records from binary file and fills in the records List
