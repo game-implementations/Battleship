@@ -10,46 +10,9 @@ int main()
 
 
     DoubleLinkedList* records = initializeRecords();
-    Record recordTest;
-    Record recordPaco;
-    Record recordMaria;
-    Record recordDani;
-
-    char playerName[] = "jose\0";
-    recordTest.playerName = malloc(sizeof(char) * MAX_CHAR_USER_INPUT);
-    // void* memcpy(void* dest, const void* src, size_t n);
-    memcpy((void*) recordTest.playerName, (void *) playerName, 5);
-
-    recordTest.score = 31;
-    recordPaco.score = 335;
-    recordMaria.score = 333;
-    recordDani.score = 3;
-    char pacoName[] = "paco\0";
-    recordPaco.playerName = malloc(sizeof(char) * MAX_CHAR_USER_INPUT);
-    // void* memcpy(void* dest, const void* src, size_t n);
-    memcpy((void*) recordPaco.playerName, (void *) pacoName, 5);
-    char mariaName[] = "maria\0";
-    recordMaria.playerName = malloc(sizeof(char) * MAX_CHAR_USER_INPUT);
-    // void* memcpy(void* dest, const void* src, size_t n);
-    memcpy((void*) recordMaria.playerName, (void *) mariaName, 5);
-    char daniName[] = "dani\0";
-    recordDani.playerName = malloc(sizeof(char) * MAX_CHAR_USER_INPUT);
-    // void* memcpy(void* dest, const void* src, size_t n);
-    memcpy((void*) recordDani.playerName, (void *) daniName, 5);
-
-
-    addRecord(records, recordTest);
-    addRecord(records, recordPaco);
-    addRecord(records, recordMaria);
-    addRecord(records, recordDani);
-    addRecord(records, recordTest);
-
-    showRecords(*records);
-
-
     Game game;
     game.isGameInitialized = false;
-
+    
     while (true)
     {
         showMenu(game.isGameInitialized);
@@ -72,8 +35,18 @@ int main()
             case 3:
             {
                 printf("Play game...\n");
-                play(game);
+                int result = play(game);
+
+                if (result != -1)
+                {
+                    printf("CONGRATULATIONS to Player %i your WON!\n", result + 1);
+                    printf("Game Dim:\t%i\nTotal Shots By Player:\t%i\nScore:\t%i\n", game.dim, game.players[result].totalShots, game.players[result].score);
+                    float score = ((float) 100 * ((float) game.dim / (float) game.players[result].totalShots) * (float) game.players[result].score);
+                    printf("YOUR SCORE IS:\t%f\n", score);
+                }
+
                 game.isGameInitialized = false;
+
                 break;
             }
             case 4:

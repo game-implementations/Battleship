@@ -78,6 +78,8 @@ typedef struct Player {
     unsigned int lastResult;
     unsigned int shot_ships;
     bool isHuman;  // True if the actions of the player have to be controlled with user input
+    int score;
+    unsigned int totalShots;
 } Player;
 
 // Contains the data of an initialized game
@@ -289,8 +291,9 @@ void annotateLastShoot(char** attackBoard, unsigned int lastResult, Position las
 unsigned int getNumberOfBoats(unsigned char* numShipsBySize, unsigned char shipMaxSize);
 
 /**
- * Performs the algorithm of the game depending on the type of game passed by parameter. Returns true if the game is
- * finished.
+ * Performs the algorithm of the game depending on the type of game passed by parameter. Returns 1 if the game is
+ * finished and the player one has won, Returns 0 if the game is finished and the player zero has won and
+ * Returns -1 if the game is Paused.
  *
  * @param game Instance of the game.
  * @return Returns false if the game is not finished and true if it is.

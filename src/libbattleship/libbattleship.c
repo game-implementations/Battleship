@@ -675,6 +675,9 @@ void initializePlayer(Player* player, unsigned int dim, unsigned char* numShipsB
 
     player->lastResult = RESULT_INITIAL;
     player->shot_ships = 0;
+    player->totalShots = 0;
+
+    player->score = 0;
 
 }
 
@@ -785,10 +788,14 @@ int playTurn(Game* game, unsigned int playerNumber, bool* isPlayerOneTurn)
 
     // Perform the shoot on the table of the adversary player
     game->players[playerNumber].lastResult = shoot(game->players[(playerNumber == 0) ? 1 : 0].defenseBoard, game->players[playerNumber].lastShot, game->dim);
+
     // Annotate the result on the attack board of the current player
     annotateLastShoot(game->players[playerNumber].attackBoard, game->players[playerNumber].lastResult, game->players[playerNumber].lastShot, game->dim);
     printf("The player %i has shot the position %i %i. The result is %i.\n", playerNumber + 1, game->players[playerNumber].lastShot.x, game->players[playerNumber].lastShot.y, game->players[playerNumber].lastResult);
 
+    game->players[playerNumber].totalShots++;
+    printf("TOTAL SHOTS:\t%i\n", game->players[playerNumber].totalShots);
+    game->players[playerNumber].score += game->players[playerNumber].lastResult - 1;
     if (game->players[playerNumber].lastResult == RESULT_SHOT)
     {
         game->players[playerNumber].shot_ships++;
@@ -855,7 +862,14 @@ int play(Game game)
     while (game.players[0].shot_ships < computePositionsOccupied(game.numShipsBySize, game.shipMaxSize)
            && game.players[1].shot_ships < computePositionsOccupied(game.numShipsBySize, game.shipMaxSize));
 
-    return 0;
+    if (isPlayerOneTurn)
+    {
+        return 1;
+    }
+    else
+    {
+        return 0;
+    }
 }
 
 void playOne(Game game)
