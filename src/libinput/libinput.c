@@ -157,3 +157,16 @@ bool isIntInSet(int integer, int* integerSet, int numIntegerSet)
     }
     return false;
 }
+
+void* memcpy(void* dest, const void* src, size_t n)
+{
+    // Initialize pointers with implicit size of a byte
+    char* src_byte = (char*) src;
+    char* dest_byte = (char*) dest;
+
+    for (unsigned int i = 0; i < n; i++)
+    {
+        dest_byte[i] = src_byte[i];
+    }
+    return dest;
+}

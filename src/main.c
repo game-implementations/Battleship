@@ -43,10 +43,8 @@ int main()
                     printf("Game Dim:\t%i\nTotal Shots By Player:\t%i\nScore:\t%i\n", game.dim, game.players[result].totalShots, game.players[result].score);
                     float score = ((float) 100 * ((float) game.dim / (float) game.players[result].totalShots) * (float) game.players[result].score);
                     printf("YOUR SCORE IS:\t%f\n", score);
+                    game.isGameInitialized = false;
                 }
-
-                game.isGameInitialized = false;
-
                 break;
             }
             case 4:

@@ -6,13 +6,16 @@
 #define MAX_CHAR_USER_INPUT 1000
 
 /**
- * Pauses the code
+ * Pauses the code execution until any key is pressed.
  */
 void pauseExecution();
 
 /**
  * Tries to read an int from the user input until it achieves it.
-*/
+ * 
+ * @param maximum_characters_accepted
+ * @return
+ */
 int readInt(unsigned int maximum_characters_accepted);
 
 /**
@@ -66,3 +69,5 @@ bool isCharInRange(char letter, char minimumChar, char maximumChar);
  *
 */
 bool isCharInSet(char letter, char* characterSet, int numCharacterSet);
+
+void* memcpy(void* dest, const void* src, size_t n)

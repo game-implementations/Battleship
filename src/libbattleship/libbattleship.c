@@ -9,19 +9,6 @@ unsigned int naturalLog(unsigned int x, unsigned int base)
     return nlog - 1;
 }
 
-void* memcpy(void* dest, const void* src, size_t n)
-{
-    // Initialize pointers with implicit size of a byte
-    char* src_byte = (char*) src;
-    char* dest_byte = (char*) dest;
-
-    for (unsigned int i = 0; i < n; i++)
-    {
-        dest_byte[i] = src_byte[i];
-    }
-    return dest;
-}
-
 
 // METHOD-LIKE FUNCTIONS FOR THE BATTLESHIP GAME
 char** reserveBoard(unsigned int dim)
@@ -639,22 +626,28 @@ void showMenu(bool isGameInitialized)
 
 int readMenuEntry(bool isGameInitialized)
 {
+    int option;
+    printf("\n");
+    printf("Introduce the number of the menu option that you want and press enter:\t");
     if (isGameInitialized)
     {
-        return readIntInRange(1, 6, MAX_CHAR_USER_INPUT);
+        option = readIntInRange(1, 6, MAX_CHAR_USER_INPUT);
     }
     else
     {
         int validMenuOptions[] = {1, 2, 5, 6};
-        return readIntInSet(validMenuOptions, 4, MAX_CHAR_USER_INPUT);
+        option = readIntInSet(validMenuOptions, 4, MAX_CHAR_USER_INPUT);
     }
+    printf("\n");
+    return option;
 }
 
 
 int inputBoardDimension()
 {
-    printf("Enter board dimension\n");
+    printf("Enter board dimension:\t");
     int dimension = readIntInRange(8, 23, MAX_CHAR_USER_INPUT);
+    printf("\n");
     return dimension;
 }
 
@@ -773,16 +766,27 @@ int playTurn(Game* game, unsigned int playerNumber, bool* isPlayerOneTurn)
     // Let the player choose a position to attack if it is a human via user input
     if (game->players[playerNumber].isHuman)
     {
-        printf("Player %i: Introduce Row to shoot. Write 0 to return to menu\n", playerNumber);
+        // Choose row
+        printf("Player %i: Introduce Row to shoot. Write 0 to return to menu\n", playerNumber + 1);
         int row = readIntInRange(0, game->dim, MAX_CHAR_USER_INPUT);
         printf("\n");
 
-        printf("Player %i: Introduce Column to shoot. Write whitespace ' ' to return to menu:\n", playerNumber);
-        int col = readIntInRange(0, game->dim, MAX_CHAR_USER_INPUT);
+        // Pause game
+        if (row == 0)
+            return PAUSED_GAME;
+
+        game->players[playerNumber].lastShot.x = rowToIndex(row, game->dim);
+
+        // Choose column
+        printf("Player %i: Introduce Column to shoot. Write @ to return to menu:\n", playerNumber + 1);
+        char col = readCharInRange('@', '@' + game->dim);
         printf("\n");
 
-        game->players[playerNumber].lastShot.x = row;
-        game->players[playerNumber].lastShot.y = col;
+        // Pause game
+        if (col == '@')
+            return PAUSED_GAME;
+
+        game->players[playerNumber].lastShot.y = columnToIndex(col, game->dim);
     }
     else  // Instead, if the player is a machine compute automatically the most optimal position to attack
     {
@@ -865,11 +869,13 @@ int play(Game* game)
     {
         if (isPlayerOneTurn)
         {
-            playTurn(game, 1, &isPlayerOneTurn);
+            if (playTurn(game, 1, &isPlayerOneTurn) == PAUSED_GAME)
+                return PAUSED_GAME;
         }
         else
         {
-            playTurn(game, 0, &isPlayerOneTurn);
+            if (playTurn(game, 0, &isPlayerOneTurn))
+                return PAUSED_GAME;
         }
     }
     while (game->players[0].shot_ships < computePositionsOccupied(game->numShipsBySize, game->shipMaxSize)
@@ -925,10 +931,10 @@ int indexToRow(int index, unsigned int dim)
 bool throwCoin()
 {
     int coinChoiceValue;
-    char options[2] = {'H', 'T'};
+    char options[4] = {'H', 'T', 'h', 't'};
 
     printf("Choose head (H) or tails (T):\t");
-    char coinChoice = readCharInSet(options, 2);
+    char coinChoice = readCharInSet(options, 4);
     printf("\n");  // Do newline after the read
     if (coinChoice == 'T')
         coinChoiceValue = TAILS;
