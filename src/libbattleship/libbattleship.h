@@ -62,13 +62,6 @@
 // Error code for translate functions
 #define ERROR_PARAMETER_OUT_OF_RANGE -1
 
-
-// CONSTANTS
-// Default number of ships by size.
-// unsigned char defaultNumShipsBySize[4];
-// unsigned char defaultShipMaxSize;  // Dimension of the NUM_SHIPS_BY_SIZE array
-
-
 // TYPE DEFINITION
 // Position in the board
 typedef struct Position {
@@ -80,33 +73,33 @@ typedef struct Position {
 typedef struct Player {
     char** attackBoard;  // Points to the board containing the revealed positions of the enemy
     char** defenseBoard;  // Points to the board that contains our ships
-    Position lastShot;
-    unsigned int lastResult;
-    unsigned int shot_ships;
+    Position lastShot;  // Position that was shot on last turn.
+    unsigned int lastResult;  // Result of the last shot
+    unsigned int shot_ships;  // Number of shot ships, to know when someone has won the game
     bool isHuman;  // True if the actions of the player have to be controlled with user input
-    int score;
-    unsigned int totalShots;
+    int score;  // Score of the player
+    unsigned int totalShots;  // Number of shots performed. Used to compute score
 } Player;
 
 // Contains the data of an initialized game
 typedef struct Game {
-    unsigned int num_players;  // Contains the number of players.
-    Player players[2];
-    unsigned int dim;
+    unsigned int num_players;  // Contains the number of human players.
+    Player players[2];  // Data for each player
+    unsigned int dim;  // The dimension is both the number of columns and rows of the board for the game
     /*
      * Defines the number of ships for each ship of different size. For example, NUM_SHIPS_TYPE[0] gives the number of
      * ships of size 1 that we are going to have in the game.
      */
-    unsigned char* numShipsBySize;
-    unsigned char shipMaxSize;  // Dimension of the NUM_SHIPS_BY_SIZE array
+    unsigned char* numShipsBySize;  // Number of ships of each size to fit in the board.
+    unsigned char shipMaxSize;  // Dimension of the numShipsBySize array
     bool isGameInitialized;  // True: if the game is initialized and can be played; False: Otherwise.
 } Game;
 
 
 // Contains the data of a Record
 typedef struct Record {
-    char* playerName;
-    int score;
+    char* playerName;  // Name of the player that made the record
+    int score;  // Score in this record
 } Record;
 
 
@@ -118,16 +111,6 @@ typedef struct Record {
  * @return Result of the logarithm
  */
 unsigned int naturalLog(unsigned int x, unsigned int b);
-
-/**
- * Custom implementation of memcopy. It copies n bytes from the src array to the dest array.
- *
- * @param dest Destination array
- * @param src Source array.
- * @param n Number of bytes to be copied.
- * @return Pointer to the destiny.
- */
-void* memcpy(void* dest, const void* src, size_t n);
 
 // METHOD-LIKE FUNCTIONS FOR THE BATTLESHIP GAME
 
@@ -145,11 +128,6 @@ char** reserveBoard(unsigned int dim);
  */
 void initializeBoard(char** board, unsigned int dim);
 
-/**
- *
- * @param board game board
- * @return true if it is correctly initialized and false if is not completely initialized
- */
  /**
   * Tries to initialize the board with all the ships and returns true if has been initialized correctly and false if the
   * board is not completely initialized.
@@ -160,14 +138,20 @@ void initializeBoard(char** board, unsigned int dim);
   * @param shipMaxSize
   * @return
   */
-bool initializeBoardWithShipsAutoPrivate(char** defense_board, unsigned int dim, unsigned char* numShipsBySize, unsigned char shipMaxSize);
+bool initializeBoardWithShipsAutoPrivate(char** defense_board,
+                                         unsigned int dim,
+                                         unsigned char* numShipsBySize,
+                                         unsigned char shipMaxSize);
 
 /**
  * Reserves memory space for a board of the given dimensions, initializes it with WATER and the ships
  * and returns it.
  * @return pointer to the initialized board with dimensions DIM x DIM
  */
-void initializeBoardWithShipsAuto(char** board, unsigned int dim, unsigned char* numShipsBySize, unsigned char shipMaxSize);
+void initializeBoardWithShipsAuto(char** board,
+                                  unsigned int dim,
+                                  unsigned char* numShipsBySize,
+                                  unsigned char shipMaxSize);
 
 /**
  * Reserves memory space for a board of the given dimensions, initializes it with WATER and asks the user to place his
@@ -195,8 +179,8 @@ void initializeShip(char** defense_board, Position position, unsigned int ship_s
 void floodSurroundings(char** board, Position shipPosition, unsigned int dim);
 
 /**
- * Locates a Ship pointed by the variables *x_ini and *y_ini by saving in *x_ini and *y_ini the initial coordinates of the ship
- * and saving in *x_end and *y_end the final coordinates of the ship.
+ * Locates a Ship pointed by the variables *x_ini and *y_ini by saving in *x_ini and *y_ini the initial coordinates of
+ * the ship and saving in *x_end and *y_end the final coordinates of the ship.
  * This function expects correct coordinates.
  * This function always places the coordinates with lower (or equal) values in *x_ini and *y_ini
  **/

@@ -816,18 +816,11 @@ int playTurn(Game* game, unsigned int playerNumber, bool* isPlayerOneTurn)
            game->players[playerNumber].lastShot.y,
            game->players[playerNumber].lastResult);
 
-    printf("TOTAL SHOTS:\t%i\n", game->players[playerNumber].totalShots);
-    if (game->players[playerNumber].lastResult == RESULT_SHOT)
+    if (game->players[playerNumber].lastResult == RESULT_SHOT || game->players[playerNumber].lastResult == RESULT_SHOT_AND_SUNK)
     {
         game->players[playerNumber].shot_ships++;
         *isPlayerOneTurn = (playerNumber == 0) ? false : true;
         printf("The player %i has shot a boat. It is his turn again.\n", playerNumber + 1);
-    }
-    else if (game->players[playerNumber].lastResult == RESULT_SHOT_AND_SUNK)
-    {
-        game->players[playerNumber].shot_ships++;
-        *isPlayerOneTurn = (playerNumber == 0) ? false : true;
-        printf("The player %i has sunk a boat. It is his turn again.\n", playerNumber + 1);
     }
     else
     {

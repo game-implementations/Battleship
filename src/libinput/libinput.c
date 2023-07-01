@@ -27,7 +27,7 @@ int readInt(unsigned int maximum_characters_accepted)
     return number;
 }
 
-int readIntInRange(int minimumNumber, int maximumRange, unsigned int maximum_characters_accepted)
+int readIntInRange(int minimumNumber, int maximumNumber, unsigned int maximum_characters_accepted)
 {
     int integerInRange;
     bool hasRangeError = false;
@@ -37,12 +37,12 @@ int readIntInRange(int minimumNumber, int maximumRange, unsigned int maximum_cha
         {
             printf("You have given an integer out of range.\n");
         }
-        printf("Introduce an integer from %i to %i:\t", minimumNumber, maximumRange);
+        printf("Introduce an integer from %i to %i:\t", minimumNumber, maximumNumber);
         integerInRange = readInt(maximum_characters_accepted);
         printf("\n");
         hasRangeError = true;
     }
-    while(integerInRange > maximumRange || integerInRange < minimumNumber);
+    while(integerInRange > maximumNumber || integerInRange < minimumNumber);
     return integerInRange;
 }
 
