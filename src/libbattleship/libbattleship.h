@@ -22,6 +22,12 @@
 #define RESULT_SHOT 2
 #define RESULT_SHOT_AND_SUNK 3
 #define RESULT_INITIAL 4
+#define RESULT_ERROR -1
+
+// Result of a game
+#define PLAYER0_WINS 0
+#define PLAYER1_WINS 1
+#define PAUSED_GAME -1
 
 // Mask states
 #define STATE_SEEK 0x00
@@ -298,9 +304,7 @@ unsigned int getNumberOfBoats(unsigned char* numShipsBySize, unsigned char shipM
  * @param game Instance of the game.
  * @return Returns false if the game is not finished and true if it is.
  */
-int play(Game game);
-
-void playZero(Game game);
+int play(Game* game);
 
 /**
  * This function simulates a turn with a player and works as an helper function for the play function
@@ -311,8 +315,6 @@ void playZero(Game game);
  * @return
  */
 int playTurn(Game* game, unsigned int playerNumber, bool* isPlayerOneTurn);
-
-void playOne(Game game);
 
 int inputBoardDimension();
 

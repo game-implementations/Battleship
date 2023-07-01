@@ -35,9 +35,9 @@ int main()
             case 3:
             {
                 printf("Play game...\n");
-                int result = play(game);
+                int result = play(&game);
 
-                if (result != -1)
+                if (result != PAUSED_GAME)
                 {
                     printf("CONGRATULATIONS to Player %i your WON!\n", result + 1);
                     printf("Game Dim:\t%i\nTotal Shots By Player:\t%i\nScore:\t%i\n", game.dim, game.players[result].totalShots, game.players[result].score);
