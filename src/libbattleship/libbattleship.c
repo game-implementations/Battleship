@@ -76,6 +76,14 @@ bool initializeBoardWithShipsAutoPrivate(char** defense_board, unsigned int dim,
     return true;
 }
 
+void changeNotDiscoveredByWater(char** board, unsigned int dim)
+{
+    for (unsigned int i = 0; i < dim; i++)
+        for (unsigned int j = 0; j < dim; j++)
+            if (board[i][j] == NOT_DISCOVERED_CELL)
+                board[i][j] = WATER;
+}
+
 void initializeBoardWithShipsAuto(char** board, unsigned int dim, unsigned char* numShipsBySize, unsigned char shipMaxSize)
 {
     // While the board can not be initialized, keep trying
@@ -84,10 +92,7 @@ void initializeBoardWithShipsAuto(char** board, unsigned int dim, unsigned char*
     while (!initializeBoardWithShipsAutoPrivate(board, dim, numShipsBySize, shipMaxSize));
 
     // When the board is initialized, substitute not discovered cells with water
-    for (unsigned int i = 0; i < dim; i++)
-        for (unsigned int j = 0; j < dim; j++)
-            if (board[i][j] == NOT_DISCOVERED_CELL)
-                board[i][j] = WATER;
+    changeNotDiscoveredByWater(board, dim);
 }
 
 void initializeShip(char** defense_board, Position ini, unsigned int ship_size, bool orientation)
@@ -95,13 +100,13 @@ void initializeShip(char** defense_board, Position ini, unsigned int ship_size, 
     Position end;
     if (orientation)
     {
-        end.x = ini.x + ship_size - 1;
-        end.y = ini.y;
+        end.y = ini.y + ship_size - 1;
+        end.x = ini.x;
     }
     else
     {
-        end.y = ini.y + ship_size - 1;
-        end.x = ini.x;
+        end.x = ini.x + ship_size - 1;
+        end.y = ini.y;
     }
 
     for (unsigned int i = ini.x; i <= end.x; i++)
@@ -205,13 +210,13 @@ bool doesFit(char** defense_board, Position ini, unsigned int ship_size, bool or
     // Compute theoretical limits
     if (orientation)
     {
-        end.x = ini.x + ship_size - 1;
-        end.y = ini.y;
+        end.y = ini.y + ship_size - 1;
+        end.x = ini.x;
     }
     else
     {
-        end.y = ini.y + ship_size - 1;
-        end.x = ini.x;
+        end.x = ini.x + ship_size - 1;
+        end.y = ini.y;
     }
 
     // If we went out of bounds of the board when calculating the limits does not fit
@@ -657,6 +662,20 @@ int inputPlayerAmount()
     return readIntInRange(0, 2, MAX_CHAR_USER_INPUT);
 }
 
+bool askYesOrNo(char* questionMessage)
+{
+    char validOptions[] = {'Y', 'N'};
+    printf(questionMessage);
+    printf(" Write yes (Y) or no (N)\n");
+    return readCharInSet(validOptions, 2) == 'Y';
+}
+
+
+bool askBoardInitializationMode()
+{
+    return askYesOrNo("Enter boats manually?");
+}
+
 
 void initializePlayer(Player* player, unsigned int dim, unsigned char* numShipsBySize, unsigned char shipMaxSize)
 {
@@ -667,15 +686,21 @@ void initializePlayer(Player* player, unsigned int dim, unsigned char* numShipsB
     // Initialize attack board as a not discovered cell
     initializeBoard(player->attackBoard, dim);
 
-    // Put ships on the defense board TODO: add manual selection
-    initializeBoardWithShipsAuto(player->defenseBoard, dim, numShipsBySize, shipMaxSize);
+    // Put ships on the defense board
+    if (player->isHuman && askBoardInitializationMode())
+    {
+
+        initializeBoardWithShipsManual(player->defenseBoard, dim, numShipsBySize, shipMaxSize);
+    }
+    else
+    {
+        initializeBoardWithShipsAuto(player->defenseBoard, dim, numShipsBySize, shipMaxSize);
+    }
 
     player->lastResult = RESULT_INITIAL;
     player->shot_ships = 0;
     player->totalShots = 0;
-
     player->score = 0;
-
 }
 
 
@@ -696,7 +721,7 @@ void initializeGame(Game* game)
     game->numShipsBySize = malloc(sizeof(unsigned char) * game->shipMaxSize);
     for (unsigned int i = 0; i < game->shipMaxSize; i++)
     {
-        game->numShipsBySize[i] = i + 1;
+        game->numShipsBySize[i] = game->shipMaxSize - i;
     }
 
     // Initialize player instances
@@ -766,17 +791,6 @@ int playTurn(Game* game, unsigned int playerNumber, bool* isPlayerOneTurn)
     // Let the player choose a position to attack if it is a human via user input
     if (game->players[playerNumber].isHuman)
     {
-        // Choose row
-        printf("Player %i: Introduce Row to shoot. Write 0 to return to menu\n", playerNumber + 1);
-        int row = readIntInRange(0, game->dim, MAX_CHAR_USER_INPUT);
-        printf("\n");
-
-        // Pause game
-        if (row == 0)
-            return PAUSED_GAME;
-
-        game->players[playerNumber].lastShot.x = rowToIndex(row, game->dim);
-
         // Choose column
         printf("Player %i: Introduce Column to shoot. Write @ to return to menu:\n", playerNumber + 1);
         char col = readCharInRange('@', '@' + game->dim);
@@ -786,7 +800,18 @@ int playTurn(Game* game, unsigned int playerNumber, bool* isPlayerOneTurn)
         if (col == '@')
             return PAUSED_GAME;
 
-        game->players[playerNumber].lastShot.y = columnToIndex(col, game->dim);
+        game->players[playerNumber].lastShot.x = columnToIndex(col, game->dim);
+
+        // Choose row
+        printf("Player %i: Introduce Row to shoot. Write 0 to return to menu\n", playerNumber + 1);
+        int row = readIntInRange(0, game->dim, MAX_CHAR_USER_INPUT);
+        printf("\n");
+
+        // Pause game
+        if (row == 0)
+            return PAUSED_GAME;
+
+        game->players[playerNumber].lastShot.y = rowToIndex(row, game->dim);
     }
     else  // Instead, if the player is a machine compute automatically the most optimal position to attack
     {
@@ -976,8 +1001,64 @@ void showRecords(DoubleLinkedList records)
 
 // TODO
 
+Position inputToPosition(char column, int row, unsigned int dim)
+{
+    Position resultPosition;
+    resultPosition.y = rowToIndex(row, dim);
+    resultPosition.x = columnToIndex(column, dim);
+    return resultPosition;
+}
 
-// void initializeBoardWithShipsManual(char** board) { }
+
+void initializeBoardWithShipsManual(char** board, unsigned int dim, unsigned char* numShipsBySize, unsigned char shipMaxSize)
+{
+    char orientations[] = {'H', 'V'}, orientation = 'V', col;
+    Position position;
+    bool isInputValid = true, ori = true;
+    int row;
+    initializeBoard(board, dim);
+    showBoard(board, dim);
+    for (int i = 0; i < shipMaxSize; i++)  // We loop through numShipsBySize to index by shipMaxSize.
+    {
+        for (int j = 0; j < numShipsBySize[i]; j++)  // Put the ship as many ships we have of this size.
+        {
+            do
+            {
+                if (!isInputValid)
+                {
+                    printf("ERROR: The ship does not fit in the position column %c, row %i and %c!\n", col, row, orientation);
+                }
+                isInputValid = false;
+
+                // Choose row
+                printf("Introduce Row to place a ship. Write 0 to start again.\n");
+                row = readIntInRange(0, dim, MAX_CHAR_USER_INPUT);
+
+                // Choose column
+                printf("Introduce Column to place a ship. Write @ to start again.\n");
+                col = readCharInRange('@', '@' + dim);
+
+                // Choose vertical or horizontal placement
+                if (i + 1 > 1)
+                {
+                    printf("Introduce Vertical (V) or Horitonzal(H)\n");
+                    orientation = readCharInSet(orientations, 2);
+                    ori = (orientation == 'V') ? VERTICAL : HORIZONTAL;
+                }
+                position = inputToPosition(col, row, dim);
+            }
+            while (!doesFit(board, position, i + 1, ori, dim));
+
+            initializeShip(board, position, i + 1, ori);
+            floodSurroundings(board, position, dim);
+
+            isInputValid = true;
+
+            showBoard(board, dim);
+        }
+    }
+    changeNotDiscoveredByWater(board, dim);
+}
 // void loadRecords(DoubleLinkedList* records) { }
 // void saveRecords(DoubleLinkedList records) { }
 // int calculateScore(DoubleLinkedList tableResultMoves) { }

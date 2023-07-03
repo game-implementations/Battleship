@@ -53,6 +53,10 @@
 #define HEADS 1
 #define TAILS 0
 
+// BOAT ORIENTATIONS
+#define VERTICAL 1
+#define HORIZONTAL 0
+
 // Magic numbers
 // Number of tries when fitting a ship into the board before reinitializing the board again
 #define AUTO_SHIP_PLACEMENT_MAX_TRIES 100000
@@ -128,6 +132,8 @@ char** reserveBoard(unsigned int dim);
  */
 void initializeBoard(char** board, unsigned int dim);
 
+void changeNotDiscoveredByWater(char** board, unsigned int dim);
+
  /**
   * Tries to initialize the board with all the ships and returns true if has been initialized correctly and false if the
   * board is not completely initialized.
@@ -154,12 +160,13 @@ void initializeBoardWithShipsAuto(char** board,
                                   unsigned char shipMaxSize);
 
 /**
- * Reserves memory space for a board of the given dimensions, initializes it with WATER and asks the user to place his
- * ship while there are ships remaining. The ships must be placed correctly or the program will show an error message to
- * the user to try again.
- * @return pointer to the initialized board with dimensions DIM x DIM
+ * Initializes the board with all ship sizes ship by ship from user input until the max amount of boats per board is
+ * reached.
  */
-void initializeBoardWithShipsManual(char** board);
+void initializeBoardWithShipsManual(char** board,
+                                  unsigned int dim,
+                                  unsigned char* numShipsBySize,
+                                  unsigned char shipMaxSize);
 
 /**
  * Initializes a new ship in the board given its begin and end positions
@@ -355,6 +362,16 @@ void showRecord(void * record);
 int compareRecords(void * recordA, void * recordB);
 
 void showRecords(DoubleLinkedList records);
+
+Position inputToPosition(char column, int row, unsigned int dim);
+
+bool askYesOrNo(char* questionMessage);
+
+/**
+ * Returns true if user want to initialize ships, false otherwise.
+*/
+bool askBoardInitializationMode();
+
 
 /**
  * Retrieves records from binary file and fills in the records List
