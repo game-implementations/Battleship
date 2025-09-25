@@ -636,12 +636,12 @@ int readMenuEntry(bool isGameInitialized)
     printf("Introduce the number of the menu option that you want and press enter:\t");
     if (isGameInitialized)
     {
-        option = readIntInRange(1, 6, MAX_CHAR_USER_INPUT);
+        option = readIntInRange(1, 6);
     }
     else
     {
         int validMenuOptions[] = {1, 2, 5, 6};
-        option = readIntInSet(validMenuOptions, 4, MAX_CHAR_USER_INPUT);
+        option = readIntInSet(validMenuOptions, 4);
     }
     printf("\n");
     return option;
@@ -651,7 +651,7 @@ int readMenuEntry(bool isGameInitialized)
 int inputBoardDimension()
 {
     printf("Enter board dimension:\t");
-    int dimension = readIntInRange(8, 23, MAX_CHAR_USER_INPUT);
+    int dimension = readIntInRange(8, 23);
     printf("\n");
     return dimension;
 }
@@ -659,13 +659,13 @@ int inputBoardDimension()
 int inputPlayerAmount()
 {
     printf("Enter number of players\n");
-    return readIntInRange(0, 2, MAX_CHAR_USER_INPUT);
+    return readIntInRange(0, 2);
 }
 
 bool askYesOrNo(char* questionMessage)
 {
     char validOptions[] = {'Y', 'N'};
-    printf(questionMessage);
+    printf("%s", questionMessage);
     printf(" Write yes (Y) or no (N)\n");
     return readCharInSet(validOptions, 2) == 'Y';
 }
@@ -804,7 +804,7 @@ int playTurn(Game* game, unsigned int playerNumber, bool* isPlayerOneTurn)
 
         // Choose row
         printf("Player %i: Introduce Row to shoot. Write 0 to return to menu\n", playerNumber + 1);
-        int row = readIntInRange(0, game->dim, MAX_CHAR_USER_INPUT);
+        int row = readIntInRange(0, game->dim);
         printf("\n");
 
         // Pause game
@@ -1032,7 +1032,7 @@ void initializeBoardWithShipsManual(char** board, unsigned int dim, unsigned cha
 
                 // Choose row
                 printf("Introduce Row to place a ship. Write 0 to start again.\n");
-                row = readIntInRange(0, dim, MAX_CHAR_USER_INPUT);
+                row = readIntInRange(0, dim);
 
                 // Choose column
                 printf("Introduce Column to place a ship. Write @ to start again.\n");

@@ -1,9 +1,14 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
+#include <limits.h>
+#include <errno.h>
+#include <ctype.h>
+#include <string.h>
 
-// Maximum number of characters in the user input to be read
-#define MAX_CHAR_USER_INPUT 1000
+// Size of the buffer when reading input
+#define READINT_BUFSIZE 64  // plenty for any int (+ spaces, sign, newline)
+#define READSTR_BUFSIZE 256  // plenty for typical input
 
 /**
  * Pauses the code execution until any key is pressed.
@@ -11,12 +16,25 @@
 void pauseExecution();
 
 /**
+ * Flushes the stdin buffer .
+ */
+void discard_rest_of_line(void);
+
+/**
+ * Parses an integer from user input and stores it in the supplied buffer.
+ *
+ * @param s Buffer with the number representation in characters
+ * @param out Buffer to store the parsed number as integer
+ * @return True if it can parse the integer, false otherwise
+ */
+bool parse_int_strict(const char *s, int *out);
+
+/**
  * Reads an integer from the user input. If data introduced by the user is not an integer, tries again.
  *
- * @param maximum_characters_accepted Maximum number of chars that can be read from user.
  * @return Read integer.
  */
-int readInt(unsigned int maximum_characters_accepted);
+int readInt();
 
 /**
  * Reads an integer from user input in a given range. While the data introduced is not a integer or is not in range,
@@ -24,10 +42,9 @@ int readInt(unsigned int maximum_characters_accepted);
  *
  * @param minimumNumber Minimum integer that is valid, including itself.
  * @param maximumNumber Maximum integer that is valid, including itself.
- * @param maximum_characters_accepted Maximum number of chars that can be read from user.
  * @return Read integer.
  */
-int readIntInRange(int minimumNumber, int maximumNumber, unsigned int maximum_characters_accepted);
+int readIntInRange(int minimumNumber, int maximumNumber);
 
 /**
  * Read an integer from user input that is in the supplied set. While the data introduced is not a integer or is not in
@@ -35,10 +52,9 @@ int readIntInRange(int minimumNumber, int maximumNumber, unsigned int maximum_ch
  *
  * @param integerSet Set of valid integers that are accepted.
  * @param numIntegerSet Number of integers that we accept as valid. Length of the set.
- * @param maximum_characters_accepted Maximum number of chars that can be read from user.
  * @return Read integer.
  */
-int readIntInSet(int* integerSet, int numIntegerSet, unsigned int maximum_characters_accepted);
+int readIntInSet(int* integerSet, int numIntegerSet);
 
 /**
  * Returns true if the supplied integer is in the set, false otherwise.
@@ -108,6 +124,14 @@ bool isCharInRange(char letter, char minimumChar, char maximumChar);
  * @return True if the char is in the set, false otherwise.
  */
 bool isCharInSet(char letter, char* characterSet, int numCharacterSet);
+
+/**
+ * Reads a line from stdin, discards newline
+ * and repeats until a non-empty string is read.
+ * Always returns an allocated string (never NULL).
+ * @return Pointer to a buffer containing the read string
+ */
+char *readString(void);
 
 /**
  * Copies n bytes from source to destination.

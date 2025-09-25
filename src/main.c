@@ -8,7 +8,6 @@ int main()
      */
     srand(time(NULL));
 
-
     DoubleLinkedList* records = initializeRecords();
     Game game;
     game.isGameInitialized = false;
