@@ -142,8 +142,3 @@ char *readString(void);
  * @return Destination address.
  */
 void* memcpy(void* dest, const void* src, size_t n);
-
-/**
- * Flush the stdin so further calls to input reading functions such as scanf or fgets don't read ghost characters
- */
-void flushStdin();

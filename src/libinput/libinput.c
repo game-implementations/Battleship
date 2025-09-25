@@ -79,16 +79,9 @@ int readIntInRange(int minimumNumber, int maximumNumber)
     return integerInRange;
 }
 
-
-void flushStdin()
-{
-    int c;
-    while ((c = getchar()) != '\n' && c != EOF) { }
-}
-
 char readChar()
 {
-    char* readInput = calloc(100, sizeof(char));
+    char* readInput = (char *) calloc(100, sizeof(char));
     do
     {
         if (fgets(readInput, 100, stdin) == NULL)
@@ -208,7 +201,7 @@ char *readString(void) {
         }
 
         // Allocate and return
-        char *result = malloc(strlen(buf) + 1);
+        char *result = (char *) malloc(strlen(buf) + 1);
         if (!result) {
             // If allocation fails, prompt again
             continue;
