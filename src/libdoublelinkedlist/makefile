@@ -13,6 +13,7 @@ CFLAGS_LIB = -shared -Wl,-soname,
 OBJ_DIR = ../../obj
 BIN_DIR = ../../bin
 LIB_DIR = ../../lib
+SRC_DIR = .
 
 # double linked list library
 $(LIB_DIR)/libdoublelinkedlist.a : $(OBJ_DIR)/libdoublelinkedlist.o
@@ -20,9 +21,9 @@ $(LIB_DIR)/libdoublelinkedlist.a : $(OBJ_DIR)/libdoublelinkedlist.o
 	ar -cvq $(LIB_DIR)/libdoublelinkedlist.a $(OBJ_DIR)/libdoublelinkedlist.o
 
 # double linked list object
-$(OBJ_DIR)/libdoublelinkedlist.o : libdoublelinkedlist.c
+$(OBJ_DIR)/libdoublelinkedlist.o : $(SRC_DIR)/libdoublelinkedlist.c
 	mkdir -p $(OBJ_DIR)
-	$(CC) $(CFLAGS) -o $(OBJ_DIR)/libdoublelinkedlist.o -c libdoublelinkedlist.c
+	$(CC) $(CFLAGS) -o $(OBJ_DIR)/libdoublelinkedlist.o -c $(SRC_DIR)/libdoublelinkedlist.c
 
 # Clean compilation objects
 .PHONY : clean

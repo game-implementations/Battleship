@@ -13,6 +13,7 @@ CFLAGS_LIB = -shared -Wl,-soname,
 OBJ_DIR = ../../obj
 BIN_DIR = ../../bin
 LIB_DIR = ../../lib
+SRC_DIR = .
 
 # Battleship library
 $(LIB_DIR)/libinput.a : $(OBJ_DIR)/libinput.o
@@ -20,9 +21,9 @@ $(LIB_DIR)/libinput.a : $(OBJ_DIR)/libinput.o
 	ar -cvq $(LIB_DIR)/libinput.a $(OBJ_DIR)/libinput.o
 
 # Battleship object
-$(OBJ_DIR)/libinput.o : libinput.c
+$(OBJ_DIR)/libinput.o : $(SRC_DIR)/libinput.c
 	mkdir -p $(OBJ_DIR)
-	$(CC) $(CFLAGS) -o $(OBJ_DIR)/libinput.o -c libinput.c
+	$(CC) $(CFLAGS) -o $(OBJ_DIR)/libinput.o -c $(SRC_DIR)/libinput.c
 
 # Clean compilation objects
 .PHONY : clean
