@@ -29,6 +29,7 @@ sink ships in as few shots as possible.
 | `src/libinput/` | Validated console input (`readInt`, `readChar`, `readString`, ranges/sets) |
 | `src/libdoublelinkedlist/` | Generic doubly linked list, used for high-score records |
 | `src/libplatform/` | **Platform Abstraction Layer (PAL)** — see below |
+| `assets/` | `icon.jpg` — 256×256 placeholder icon embedded in the `.nro` |
 | `doc/`, `README.md` | Original assignment spec and function notes |
 
 Each `src/lib*/` builds a static archive via its own nested `makefile`; the root
@@ -46,10 +47,12 @@ calls only that interface plus plain `printf()`; it never touches `stdin`,
 
 - `platform_posix.c` — desktop terminals (Linux / macOS / *BSD). Compiled unless
   `__SWITCH__` is defined. Reproduces the exact pre-PAL stdin behaviour.
-- `platform_switch.c` — Nintendo Switch via libnx. Real: `consoleInit`/`Exit`,
-  `appletMainLoop` (drives `platform_should_run`), `consoleUpdate`
-  (`platform_frame_end`), `PadState` for `platform_wait_any_key`. Stub:
-  `platform_read_line` returns `"6"` until Phase 3 wires up the software keyboard.
+- `platform_switch.c` — Nintendo Switch via libnx, all entry points real:
+  `consoleInit`/`Exit`, `appletMainLoop` (drives `platform_should_run`),
+  `consoleUpdate` (`platform_frame_end`), `PadState` for `platform_wait_any_key`,
+  and the system software keyboard (`swkbdCreate`/`swkbdShow`, default preset,
+  255-char cap) for `platform_read_line` — a cancel returns `""`, which every
+  `libinput` reader treats as invalid and re-prompts.
 
 PAL surface: `platform_init` / `platform_shutdown`, `platform_should_run` (loop
 condition — never `while (true)`), `platform_frame_end` (flush a screen of text),
@@ -80,18 +83,23 @@ standalone with desktop defaults if invoked directly.
 The `switch` branch uses `aarch64-none-elf-gcc`, `-std=gnu11` (`<switch.h>` needs
 C11 anonymous unions), the cortex-a57 arch flags, `-D__SWITCH__`,
 `-specs=…/switch.specs -lnx`, `-u printf_float` (newlib omits `%f` otherwise),
-then `elf2nro`. Output: a static-PIE aarch64 ELF wrapped as `bin/Battleship.nro`
-(`NRO0` magic). Builds clean; **not yet run on hardware/emulator** — that's the
-open Phase 2 check.
+then `nacptool` + `elf2nro`. Output: a static-PIE aarch64 ELF wrapped as
+`bin/Battleship.nro` (`NRO0` header, `ASET` segment with the JPEG icon and a
+control.nacp). Homebrew-Menu metadata is overridable: `APP_TITLE`, `APP_AUTHOR`,
+`APP_VERSION`, `APP_ICON` (default `assets/icon.jpg`, a 256×256 placeholder).
+Builds clean via Docker; **not yet run on hardware/emulator**.
 
 ### Porting roadmap
 
 1. **PAL + POSIX impl, desktop unchanged; one-makefile build wiring.** ✅ done
 2. **devkitA64 toolchain + `platform_switch.c`; `switch` branch links a valid
    `.nro`.** ✅ done (build verified via Docker; on-hardware menu check still open)
-3. Switch input: libnx software keyboard for text/number entry (replace the
-   `platform_read_line` stub), `PadState` menu nav, the `@`/`0` back-to-menu
-   sentinels on B; applet suspend/resume; `.nro` metadata (`nacptool`) + icon.
+3. Switch input + packaging.
+   - ✅ swkbd `platform_read_line`; `.nro` metadata (`nacptool`) + icon.
+   - Open, needs on-device iteration: D-pad/A menu nav and B → `@`/`0`
+     back-to-menu sentinels (today the menu and coordinates are swkbd-typed);
+     explicit applet suspend/resume redraw (libnx defaults cover the basics);
+     real 256×256 icon to replace the placeholder.
 4. Implement save / load / highscore persistence via `platform_save_dir()`
    (`./` on desktop, `sdmc:/switch/battleship/` on Switch).
 5. Package: CI matrix (desktop smoke build + containerized `.nro`), GitHub

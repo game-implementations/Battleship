@@ -39,11 +39,19 @@ else ifeq ($(PLATFORM),switch)
     DEVKITA64    ?= $(DEVKITPRO)/devkitA64
     LIBNX        ?= $(DEVKITPRO)/libnx
     CC           := $(DEVKITA64)/bin/aarch64-none-elf-gcc
+    NACPTOOL     := $(DEVKITPRO)/tools/bin/nacptool
+    ELF2NRO      := $(DEVKITPRO)/tools/bin/elf2nro
     SWITCH_ARCH  := -march=armv8-a+crc+crypto -mtune=cortex-a57 -mtp=soft -fPIE
     CFLAGS       ?= -O3 -Wall -Wextra -g -std=gnu11 $(SWITCH_ARCH) -D__SWITCH__ -I$(LIBNX)/include
     SWITCH_LDFLAGS := -specs=$(LIBNX)/switch.specs $(SWITCH_ARCH) -u printf_float -L$(LIBNX)/lib -lnx -lm
     PLATFORM_SRC := platform_switch.c
     ARTIFACT     := $(BIN_DIR)/Battleship.nro
+
+    # .nro metadata shown in the Homebrew Menu (override on the command line).
+    APP_TITLE    ?= Battleship
+    APP_AUTHOR   ?= AleixMT
+    APP_VERSION  ?= 1.0.0
+    APP_ICON     ?= assets/icon.jpg
 
 else
     $(error Unsupported PLATFORM "$(PLATFORM)". Use "posix" or "switch".)
@@ -102,12 +110,13 @@ $(BIN_DIR)/Battleship : $(OBJS)
 
 else ifeq ($(PLATFORM),switch)
 
-# Link an ELF, then wrap it as an .nro for the Homebrew Launcher.
-# Metadata / icon (--nacp, --icon) get added in Phase 3.
-$(BIN_DIR)/Battleship.nro : $(OBJS)
+# Link an ELF, build the control.nacp, then wrap both plus the icon as an .nro
+# for the Homebrew Menu.
+$(BIN_DIR)/Battleship.nro : $(OBJS) $(APP_ICON)
 	mkdir -p $(BIN_DIR)
 	$(CC) $(CFLAGS) -o $(BIN_DIR)/Battleship.elf $(OBJS) $(SWITCH_LDFLAGS)
-	$(DEVKITPRO)/tools/bin/elf2nro $(BIN_DIR)/Battleship.elf $(BIN_DIR)/Battleship.nro
+	$(NACPTOOL) --create "$(APP_TITLE)" "$(APP_AUTHOR)" "$(APP_VERSION)" $(BIN_DIR)/Battleship.nacp
+	$(ELF2NRO) $(BIN_DIR)/Battleship.elf $(BIN_DIR)/Battleship.nro --nacp=$(BIN_DIR)/Battleship.nacp --icon=$(APP_ICON)
 
 endif
 
