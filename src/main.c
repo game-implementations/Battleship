@@ -1,7 +1,11 @@
 #include "libbattleship/libbattleship.h"
+#include "libplatform/platform.h"
 
 int main()
 {
+    // Bring up the host platform (console, input, filesystem) before any I/O.
+    platform_init();
+
     /*
      * Initialize random seed from current time to obtain a different sequence of random number generation when calling
      * the rand() function. Set to a hardcoded number for reproducibility.
@@ -12,9 +16,10 @@ int main()
     Game game;
     game.isGameInitialized = false;
     
-    while (true)
+    while (platform_should_run())
     {
         showMenu(game.isGameInitialized);
+        platform_frame_end();
         int menuOption = readMenuEntry(game.isGameInitialized);
         switch (menuOption)
         {
@@ -59,14 +64,21 @@ int main()
             case 6:
             {
                 printf("Leaving game...\n");
+                platform_frame_end();
+                platform_shutdown();
                 exit(0);
                 break;
             }
             default:
             {
+                platform_shutdown();
                 exit(1);
                 break;
             }
         }
     }
+
+    // Reached only if the host asked the app to stop (console targets).
+    platform_shutdown();
+    return 0;
 }

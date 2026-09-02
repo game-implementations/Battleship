@@ -1,15 +1,9 @@
 #include "libinput.h"
+#include "../libplatform/platform.h"
 
 void pauseExecution()
 {
-    char a;
-    if (scanf("%c", &a))
-        return;
-}
-
-void discard_rest_of_line(void) {
-    int c;
-    while ((c = fgetc(stdin)) != '\n' && c != EOF) {}
+    platform_wait_any_key();
 }
 
 bool parse_int_strict(const char *s, int *out) {
@@ -37,24 +31,12 @@ bool parse_int_strict(const char *s, int *out) {
 }
 
 int readInt(void) {
-    char buf[READINT_BUFSIZE];
-
     for (;;) {
-        if (fgets(buf, READINT_BUFSIZE, stdin) == NULL) {
-            continue;  // If EOF or error try again
-        }
-
-        // Handle long lines: if newline didn't fit, discard the rest
-        size_t len = strlen(buf);
-        if (len > 0 && buf[len - 1] != '\n') {
-            discard_rest_of_line();
-        } else if (len > 0) {
-            // strip newline
-            buf[len - 1] = '\0';
-        }
-
+        char *line = platform_read_line();  // never NULL, newline already stripped
         int value;
-        if (parse_int_strict(buf, &value)) {
+        bool ok = parse_int_strict(line, &value);
+        free(line);
+        if (ok) {
             return value;
         }
     }
@@ -81,17 +63,19 @@ int readIntInRange(int minimumNumber, int maximumNumber)
 
 char readChar()
 {
-    char* readInput = (char *) calloc(100, sizeof(char));
-    do
+    for (;;)
     {
-        if (fgets(readInput, 100, stdin) == NULL)
+        char *line = platform_read_line();
+        // Accept only a line that holds exactly one character, matching the
+        // previous "single char followed by newline" contract.
+        if (strlen(line) == 1)
         {
-            continue;
+            char c = line[0];
+            free(line);
+            return c;
         }
+        free(line);
     }
-    while (readInput[1] != '\n');
-
-    return readInput[0];
 }
 
 char readCharInRange(char minimumChar, char maximumChar)
@@ -183,43 +167,7 @@ bool isIntInSet(int integer, int* integerSet, int numIntegerSet)
 }
 
 char *readString(void) {
-    char buf[READSTR_BUFSIZE];
-
-    for (;;) {
-        if (fgets(buf, sizeof buf, stdin) == NULL) {
-            // EOF or error — just keep waiting for valid input
-            clearerr(stdin);
-            continue;
-        }
-
-        // If no newline, input was too long — discard rest of the line
-        size_t len = strlen(buf);
-        if (len > 0 && buf[len - 1] != '\n') {
-            discard_rest_of_line();
-        } else if (len > 0) {
-            buf[len - 1] = '\0'; // strip newline
-        }
-
-        // Allocate and return
-        char *result = (char *) malloc(strlen(buf) + 1);
-        if (!result) {
-            // If allocation fails, prompt again
-            continue;
-        }
-        strcpy(result, buf);
-        return result;
-    }
-}
-
-void* memcpy(void* dest, const void* src, size_t n)
-{
-    // Initialize pointers with implicit size of a byte
-    char* src_byte = (char*) src;
-    char* dest_byte = (char*) dest;
-
-    for (unsigned int i = 0; i < n; i++)
-    {
-        dest_byte[i] = src_byte[i];
-    }
-    return dest;
+    // The platform layer already returns an owned, newline-stripped buffer and
+    // never returns NULL, so this is now just a pass-through.
+    return platform_read_line();
 }

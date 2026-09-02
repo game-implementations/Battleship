@@ -6,19 +6,10 @@
 #include <ctype.h>
 #include <string.h>
 
-// Size of the buffer when reading input
-#define READINT_BUFSIZE 64  // plenty for any int (+ spaces, sign, newline)
-#define READSTR_BUFSIZE 256  // plenty for typical input
-
 /**
  * Pauses the code execution until any key is pressed.
  */
 void pauseExecution();
-
-/**
- * Flushes the stdin buffer .
- */
-void discard_rest_of_line(void);
 
 /**
  * Parses an integer from user input and stores it in the supplied buffer.
@@ -132,13 +123,3 @@ bool isCharInSet(char letter, char* characterSet, int numCharacterSet);
  * @return Pointer to a buffer containing the read string
  */
 char *readString(void);
-
-/**
- * Copies n bytes from source to destination.
- *
- * @param dest Pointer to the destination the copy.
- * @param src Pointer to the source of the data to copy.
- * @param n Number of bytes to copy.
- * @return Destination address.
- */
-void* memcpy(void* dest, const void* src, size_t n);

@@ -1,9 +1,9 @@
 # Compiler
-CC = gcc
+CC ?= gcc
 # Compiler flags:
 # Optimization level = 3, show warnings, show extra warnings, compile with debugger symbols, link math library, Used to
 # link libraries, C standard = 1999, link against libc
-CFLAGS = -O3 -Wall -Wextra -g -lm -fPIC -std=c99 -lc
+CFLAGS ?= -O3 -Wall -Wextra -g -lm -fPIC -std=c99 -lc
 # Compiler flags for libs:
 # Marks the output as shared library so we do not fail without a main, -Wl set of parameters separated by ','. The only
 # parameter is -soname, which allows to mark the library with a SO_tag
