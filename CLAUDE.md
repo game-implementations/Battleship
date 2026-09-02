@@ -30,6 +30,8 @@ sink ships in as few shots as possible.
 | `src/libdoublelinkedlist/` | Generic doubly linked list, used for high-score records |
 | `src/libplatform/` | **Platform Abstraction Layer (PAL)** — see below |
 | `assets/` | `icon.jpg` — 256×256 placeholder icon embedded in the `.nro` |
+| `.github/workflows/` | `ci.yml` (build + smoke both targets), `release.yml` (`v*` tag → GitHub Release) |
+| `packaging/` | Homebrew App Store submission notes + `pkgbuild` template |
 | `doc/`, `README.md` | Original assignment spec and function notes |
 
 Each `src/lib*/` builds a static archive via its own nested `makefile`; the root
@@ -69,9 +71,11 @@ shadowed libc and was removed.
 ### Build
 
 ```sh
-make                  # desktop build  -> bin/Battleship      (PLATFORM=posix, default)
-make PLATFORM=switch  # homebrew build -> bin/Battleship.nro   (needs $DEVKITPRO set)
-make switch-docker    # same, inside the devkitpro/devkita64 container (no local toolchain)
+make                       # desktop build  -> bin/Battleship      (PLATFORM=posix, default)
+make PLATFORM=switch       # homebrew build -> bin/Battleship.nro   (needs $DEVKITPRO set)
+make switch-docker         # same, inside the devkitpro/devkita64 container (no local toolchain)
+make dist                  # stage the current platform's release asset under dist/
+make PLATFORM=switch dist  #   -> dist/Battleship.nro
 make clean
 ```
 
@@ -104,13 +108,33 @@ Builds clean via Docker; **not yet run on hardware/emulator**.
      turn (coordinates are still swkbd-typed); explicit applet suspend/resume
      redraw (libnx defaults cover the basics); real 256×256 icon to replace the
      placeholder; the on-hardware/emulator smoke test.
-4. Implement save / load / highscore persistence via `platform_save_dir()`
-   (`./` on desktop, `sdmc:/switch/battleship/` on Switch).
-5. Package: CI matrix (desktop smoke build + containerized `.nro`), GitHub
-   Releases, optional Homebrew App Store submission.
+4. **Skipped for now.** Save / load / highscore persistence via
+   `platform_save_dir()` (`./` desktop, `sdmc:/switch/battleship/` Switch) — the
+   game's load/save are still stubs.
+5. Packaging + release. ✅ done
+   - `.github/workflows/ci.yml` — every push/PR: desktop `make` + smoke test,
+     and `make PLATFORM=switch` in the `devkitpro/devkita64` container with an
+     NRO0/ASET check, uploading `Battleship.nro`.
+   - `.github/workflows/release.yml` — on a `v*` tag: `make dist` per platform,
+     then `gh release create` with the `.tar.gz` and the `.nro` (the `.nro` is
+     stamped with the tag via `APP_VERSION`). Needs `permissions: contents:write`.
+   - `make dist` stages `dist/Battleship-linux-<arch>.tar.gz` (posix) or
+     `dist/Battleship.nro` (switch).
+   - Homebrew App Store listing is a manual PR — see `packaging/hb-appstore.md`
+     and `packaging/pkgbuild.template.json`.
 
 "Publish" means homebrew distribution — the eShop requires a licensed Nintendo
 SDK that is not available here.
+
+## CI / release
+
+- Cut a release: `git tag v1.2.3 && git push origin v1.2.3` → the `Release`
+  workflow builds both targets and publishes a GitHub Release with auto notes.
+- The desktop `all` recipe leaves `bin/Battleship` mode `0111` (exec-only); the
+  posix `dist` recipe `chmod 0755`s it first so `tar` can read it.
+- No local Actions runner here — workflow steps were validated by running their
+  exact commands (`make`, the smoke pipe, `make PLATFORM=switch dist`) in the
+  container.
 
 ## Conventions
 

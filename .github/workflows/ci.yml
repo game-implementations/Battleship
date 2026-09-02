@@ -1,0 +1,48 @@
+name: CI
+
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+
+jobs:
+  desktop:
+    name: Desktop (x86_64)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build
+        run: make
+
+      - name: Smoke test
+        run: |
+          set -euo pipefail
+          # Invalid menu entry then quit: exercises the retry loop and a clean exit.
+          out=$(printf '9\n6\n' | ./bin/Battleship)
+          printf '%s\n' "$out"
+          printf '%s\n' "$out" | grep -q 'You have given a int out of range'
+          printf '%s\n' "$out" | grep -q 'Leaving game...'
+
+  switch:
+    name: Nintendo Switch (.nro)
+    runs-on: ubuntu-latest
+    container: devkitpro/devkita64:latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build .nro
+        run: make PLATFORM=switch
+
+      - name: Verify NRO
+        run: |
+          set -eu
+          test -s bin/Battleship.nro
+          grep -q 'NRO0' bin/Battleship.nro   # NRO magic (offset 0x10)
+          grep -q 'ASET' bin/Battleship.nro   # asset segment (icon + nacp)
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Battleship-nro
+          path: bin/Battleship.nro
+          if-no-files-found: error

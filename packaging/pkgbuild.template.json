@@ -1,0 +1,20 @@
+{
+  "info": {
+    "title": "Battleship",
+    "author": "AleixMT",
+    "category": "game",
+    "version": "1.0.0",
+    "url": "https://github.com/game-implementations/Battleship",
+    "license": "TODO",
+    "binary": "/switch/battleship/Battleship.nro",
+    "description": "The classic Battleship game, in C, for the Switch console.",
+    "details": "Single-file homebrew: pick a board size, place ships automatically or by hand, and play human-vs-human, human-vs-CPU or CPU-vs-CPU. Menu is D-pad navigable; text entry uses the system keyboard. Built from the same source that also runs on desktop x86/64."
+  },
+  "assets": [
+    {
+      "url": "https://github.com/game-implementations/Battleship/releases/download/v1.0.0/Battleship.nro",
+      "type": "get",
+      "dest": "/switch/battleship/Battleship.nro"
+    }
+  ]
+}

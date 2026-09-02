@@ -137,7 +137,25 @@ switch-docker :
 		-v "$(CURDIR)":/project -w /project \
 		$(DOCKER_DKP_IMAGE) make PLATFORM=switch
 
+# ---- Release packaging ------------------------------------------------
+# `make dist` stages the current platform's release asset under dist/.
+# CI (.github/workflows/release.yml) runs it once per platform on a v* tag.
+DIST_DIR = dist
+
+ifeq ($(PLATFORM),posix)
+dist : $(BIN_DIR)/Battleship
+	mkdir -p $(DIST_DIR)
+	chmod 0755 $(BIN_DIR)/Battleship   # `all` sets 0111 (exec-only); tar needs to read it
+	tar -czf $(DIST_DIR)/Battleship-linux-$$(uname -m).tar.gz -C $(BIN_DIR) Battleship
+	@echo "staged $(DIST_DIR)/Battleship-linux-$$(uname -m).tar.gz"
+else ifeq ($(PLATFORM),switch)
+dist : $(BIN_DIR)/Battleship.nro
+	mkdir -p $(DIST_DIR)
+	cp $(BIN_DIR)/Battleship.nro $(DIST_DIR)/Battleship.nro
+	@echo "staged $(DIST_DIR)/Battleship.nro"
+endif
+
 # Clean compilation objects
-.PHONY : all run debug switch-docker clean
+.PHONY : all run debug switch-docker dist clean
 clean :
-	rm -rf $(OBJ_DIR) $(BIN_DIR) $(LIB_DIR)
+	rm -rf $(OBJ_DIR) $(BIN_DIR) $(LIB_DIR) $(DIST_DIR)

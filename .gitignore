@@ -56,4 +56,5 @@ dkms.conf
 obj/*
 bin/*
 lib/*
+dist/*
 
