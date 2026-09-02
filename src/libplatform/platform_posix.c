@@ -88,4 +88,14 @@ const char* platform_save_dir(void)
     return "./";
 }
 
+int platform_menu_select(const char* title, const char* const* labels,
+                         const int* values, int count)
+{
+    (void) title;
+    (void) labels;
+    (void) values;
+    (void) count;
+    return PLATFORM_MENU_NOT_HANDLED; /* caller keeps its text prompt */
+}
+
 #endif /* !__SWITCH__ */

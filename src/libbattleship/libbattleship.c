@@ -1,4 +1,5 @@
 #include "libbattleship.h"
+#include "../libplatform/platform.h"
 
 // PROCEDURE-LIKE (STATIC) FUNCTIONS
 unsigned int naturalLog(unsigned int x, unsigned int base)
@@ -631,6 +632,22 @@ void showMenu(bool isGameInitialized)
 
 int readMenuEntry(bool isGameInitialized)
 {
+    // On a console the menu is D-pad navigable; on desktop platform_menu_select
+    // returns the sentinel and we fall through to the original numeric prompt.
+    static const char* fullLabels[]  = {"Create new game", "Load game", "Play game",
+                                        "Save game", "Highscore", "Quit"};
+    static const int   fullValues[]  = {1, 2, 3, 4, 5, 6};
+    static const char* shortLabels[] = {"Create new game", "Load game", "Highscore", "Quit"};
+    static const int   shortValues[] = {1, 2, 5, 6};
+
+    int picked = isGameInitialized
+                 ? platform_menu_select("BATTLESHIP", fullLabels, fullValues, 6)
+                 : platform_menu_select("BATTLESHIP", shortLabels, shortValues, 4);
+    if (picked != PLATFORM_MENU_NOT_HANDLED)
+    {
+        return picked;
+    }
+
     int option;
     printf("\n");
     printf("Introduce the number of the menu option that you want and press enter:\t");

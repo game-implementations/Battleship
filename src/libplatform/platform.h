@@ -51,4 +51,23 @@ char* platform_read_line(void);
 /** Directory (with trailing '/') where save files and high scores belong. */
 const char* platform_save_dir(void);
 
+/*
+ * Returned by platform_menu_select() on platforms with no D-pad/pointer menu
+ * widget of their own (i.e. desktop). Menu values are small positive ints, so
+ * this can never be mistaken for a real choice. Value is INT_MIN without
+ * pulling in <limits.h>.
+ */
+#define PLATFORM_MENU_NOT_HANDLED (-2147483647 - 1)
+
+/**
+ * Offer a single-choice menu navigated with the console's D-pad / stick and
+ * confirmed with A; returns the chosen entry from `values`. `labels[i]` is the
+ * text shown for `values[i]`, `count` entries, `title` may be NULL.
+ *
+ * Desktop has no such widget: it returns PLATFORM_MENU_NOT_HANDLED and the
+ * caller falls back to its own text prompt.
+ */
+int platform_menu_select(const char* title, const char* const* labels,
+                         const int* values, int count);
+
 #endif /* BATTLESHIP_PLATFORM_H */

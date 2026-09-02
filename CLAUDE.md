@@ -50,14 +50,17 @@ calls only that interface plus plain `printf()`; it never touches `stdin`,
 - `platform_switch.c` — Nintendo Switch via libnx, all entry points real:
   `consoleInit`/`Exit`, `appletMainLoop` (drives `platform_should_run`),
   `consoleUpdate` (`platform_frame_end`), `PadState` for `platform_wait_any_key`,
-  and the system software keyboard (`swkbdCreate`/`swkbdShow`, default preset,
-  255-char cap) for `platform_read_line` — a cancel returns `""`, which every
-  `libinput` reader treats as invalid and re-prompts.
+  the system software keyboard (`swkbdCreate`/`swkbdShow`, default preset,
+  255-char cap) for `platform_read_line` (a cancel returns `""`, which every
+  `libinput` reader treats as invalid and re-prompts), and a `consoleClear`
+  redraw loop for `platform_menu_select` (D-pad / stick to move, A to select).
 
 PAL surface: `platform_init` / `platform_shutdown`, `platform_should_run` (loop
 condition — never `while (true)`), `platform_frame_end` (flush a screen of text),
 `platform_wait_any_key` (replaces the old `pauseExecution`), `platform_read_line`
-(owned, newline-stripped, never NULL), `platform_save_dir`.
+(owned, newline-stripped, never NULL), `platform_save_dir`, `platform_menu_select`
+(D-pad menu; returns `PLATFORM_MENU_NOT_HANDLED` on desktop so the caller keeps
+its numeric text prompt — `readMenuEntry` is the only caller).
 
 `libinput`'s readers are now thin validators on top of `platform_read_line()`.
 There is deliberately **no** in-tree `memcpy` — the previous custom definition
@@ -95,11 +98,12 @@ Builds clean via Docker; **not yet run on hardware/emulator**.
 2. **devkitA64 toolchain + `platform_switch.c`; `switch` branch links a valid
    `.nro`.** ✅ done (build verified via Docker; on-hardware menu check still open)
 3. Switch input + packaging.
-   - ✅ swkbd `platform_read_line`; `.nro` metadata (`nacptool`) + icon.
-   - Open, needs on-device iteration: D-pad/A menu nav and B → `@`/`0`
-     back-to-menu sentinels (today the menu and coordinates are swkbd-typed);
-     explicit applet suspend/resume redraw (libnx defaults cover the basics);
-     real 256×256 icon to replace the placeholder.
+   - ✅ swkbd `platform_read_line`; `.nro` metadata (`nacptool`) + icon;
+     D-pad/A menu navigation (`platform_menu_select`, used by `readMenuEntry`).
+   - Open, needs on-device iteration: B → `@`/`0` back-to-menu sentinels during a
+     turn (coordinates are still swkbd-typed); explicit applet suspend/resume
+     redraw (libnx defaults cover the basics); real 256×256 icon to replace the
+     placeholder; the on-hardware/emulator smoke test.
 4. Implement save / load / highscore persistence via `platform_save_dir()`
    (`./` on desktop, `sdmc:/switch/battleship/` on Switch).
 5. Package: CI matrix (desktop smoke build + containerized `.nro`), GitHub

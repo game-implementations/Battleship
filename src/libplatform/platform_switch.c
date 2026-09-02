@@ -10,6 +10,7 @@
 
 #include "platform.h"
 
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <switch.h>
@@ -110,6 +111,45 @@ char* platform_read_line(void)
 const char* platform_save_dir(void)
 {
     return "sdmc:/switch/battleship/";
+}
+
+int platform_menu_select(const char* title, const char* const* labels,
+                         const int* values, int count)
+{
+    int cur = 0;
+
+    padUpdate(&g_pad); /* drop a button still held from the previous screen */
+
+    while (appletMainLoop()) {
+        consoleClear();
+        if (title != NULL) {
+            printf("%s\n\n", title);
+        }
+        for (int i = 0; i < count; i++) {
+            if (i == cur) {
+                printf("\x1b[7m> %s\x1b[0m\n", labels[i]); /* reverse video */
+            } else {
+                printf("  %s\n", labels[i]);
+            }
+        }
+        printf("\nUp / Down to move, A to select\n");
+        consoleUpdate(NULL);
+
+        padUpdate(&g_pad);
+        u64 down = padGetButtonsDown(&g_pad);
+        if (down & HidNpadButton_AnyUp) {
+            cur = (cur - 1 + count) % count;
+        }
+        if (down & HidNpadButton_AnyDown) {
+            cur = (cur + 1) % count;
+        }
+        if (down & HidNpadButton_A) {
+            return values[cur];
+        }
+    }
+
+    /* System asked the app to quit: act as if the last entry (Quit) was picked. */
+    return values[count - 1];
 }
 
 #endif /* __SWITCH__ */
