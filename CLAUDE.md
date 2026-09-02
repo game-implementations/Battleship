@@ -46,7 +46,10 @@ calls only that interface plus plain `printf()`; it never touches `stdin`,
 
 - `platform_posix.c` — desktop terminals (Linux / macOS / *BSD). Compiled unless
   `__SWITCH__` is defined. Reproduces the exact pre-PAL stdin behaviour.
-- `platform_switch.c` — Nintendo Switch via libnx *(added in a later phase)*.
+- `platform_switch.c` — Nintendo Switch via libnx. Real: `consoleInit`/`Exit`,
+  `appletMainLoop` (drives `platform_should_run`), `consoleUpdate`
+  (`platform_frame_end`), `PadState` for `platform_wait_any_key`. Stub:
+  `platform_read_line` returns `"6"` until Phase 3 wires up the software keyboard.
 
 PAL surface: `platform_init` / `platform_shutdown`, `platform_should_run` (loop
 condition — never `while (true)`), `platform_frame_end` (flush a screen of text),
@@ -60,8 +63,9 @@ shadowed libc and was removed.
 ### Build
 
 ```sh
-make                  # desktop build -> bin/Battleship       (PLATFORM=posix, default)
-make PLATFORM=switch  # homebrew build -> bin/Battleship.nro   (needs $DEVKITPRO)
+make                  # desktop build  -> bin/Battleship      (PLATFORM=posix, default)
+make PLATFORM=switch  # homebrew build -> bin/Battleship.nro   (needs $DEVKITPRO set)
+make switch-docker    # same, inside the devkitpro/devkita64 container (no local toolchain)
 make clean
 ```
 
@@ -71,17 +75,23 @@ out explicitly, consistent with the project's hand-rolled build. The root
 `makefile` picks `CC` / `CFLAGS` / `PLATFORM_SRC` / final-artifact recipe per
 platform and `export`s `CC` and `CFLAGS`. The four `src/lib*/makefile` files
 declare `CC ?=` / `CFLAGS ?=` so they use those exported values, and still build
-standalone with desktop defaults if invoked directly. `posix` is fully working;
-the `switch` branch is written but unverified until the Phase 2 toolchain lands.
+standalone with desktop defaults if invoked directly.
+
+The `switch` branch uses `aarch64-none-elf-gcc`, `-std=gnu11` (`<switch.h>` needs
+C11 anonymous unions), the cortex-a57 arch flags, `-D__SWITCH__`,
+`-specs=…/switch.specs -lnx`, `-u printf_float` (newlib omits `%f` otherwise),
+then `elf2nro`. Output: a static-PIE aarch64 ELF wrapped as `bin/Battleship.nro`
+(`NRO0` magic). Builds clean; **not yet run on hardware/emulator** — that's the
+open Phase 2 check.
 
 ### Porting roadmap
 
 1. **PAL + POSIX impl, desktop unchanged; one-makefile build wiring.** ✅ done
-2. devkitA64 toolchain + `platform_switch.c`; verify the `switch` makefile branch
-   links a `.nro` that shows the menu.
-3. Switch input: libnx software keyboard for text/number entry, `PadState` for
-   "press any key" and menu nav; applet main-loop + suspend/resume; `.nro`
-   metadata + icon.
+2. **devkitA64 toolchain + `platform_switch.c`; `switch` branch links a valid
+   `.nro`.** ✅ done (build verified via Docker; on-hardware menu check still open)
+3. Switch input: libnx software keyboard for text/number entry (replace the
+   `platform_read_line` stub), `PadState` menu nav, the `@`/`0` back-to-menu
+   sentinels on B; applet suspend/resume; `.nro` metadata (`nacptool`) + icon.
 4. Implement save / load / highscore persistence via `platform_save_dir()`
    (`./` on desktop, `sdmc:/switch/battleship/` on Switch).
 5. Package: CI matrix (desktop smoke build + containerized `.nro`), GitHub

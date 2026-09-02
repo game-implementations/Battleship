@@ -30,16 +30,17 @@ ifeq ($(PLATFORM),posix)
 
 else ifeq ($(PLATFORM),switch)
     # Nintendo Switch homebrew via devkitPro (devkitA64 + libnx).
-    # Requires the devkitPro environment; DEVKITPRO must point at the install
-    # (e.g. /opt/devkitpro). Verified once the Phase 2 toolchain is in place.
+    # Needs the devkitPro environment: DEVKITPRO pointing at the install
+    # (e.g. /opt/devkitpro). If you don't have it locally, use `make switch-docker`.
+    # gnu11 (not c99) because <switch.h> relies on C11 anonymous unions.
     ifeq ($(strip $(DEVKITPRO)),)
-        $(error PLATFORM=switch needs the devkitPro environment: set DEVKITPRO, e.g. `export DEVKITPRO=/opt/devkitpro`)
+        $(error PLATFORM=switch needs the devkitPro environment: set DEVKITPRO (e.g. export DEVKITPRO=/opt/devkitpro), or run `make switch-docker`)
     endif
     DEVKITA64    ?= $(DEVKITPRO)/devkitA64
     LIBNX        ?= $(DEVKITPRO)/libnx
     CC           := $(DEVKITA64)/bin/aarch64-none-elf-gcc
     SWITCH_ARCH  := -march=armv8-a+crc+crypto -mtune=cortex-a57 -mtp=soft -fPIE
-    CFLAGS       ?= -O3 -Wall -Wextra -g -std=c99 $(SWITCH_ARCH) -D__SWITCH__ -I$(LIBNX)/include
+    CFLAGS       ?= -O3 -Wall -Wextra -g -std=gnu11 $(SWITCH_ARCH) -D__SWITCH__ -I$(LIBNX)/include
     SWITCH_LDFLAGS := -specs=$(LIBNX)/switch.specs $(SWITCH_ARCH) -u printf_float -L$(LIBNX)/lib -lnx -lm
     PLATFORM_SRC := platform_switch.c
     ARTIFACT     := $(BIN_DIR)/Battleship.nro
@@ -119,7 +120,15 @@ run : $(BIN_DIR)/Battleship
 debug : $(BIN_DIR)/Battleship
 	gdb $(BIN_DIR)/Battleship
 
+# Build the Switch .nro inside the official devkitPro container, so no local
+# toolchain install is needed. Output lands in bin/ owned by the current user.
+DOCKER_DKP_IMAGE ?= devkitpro/devkita64:latest
+switch-docker :
+	docker run --rm -t -u $$(id -u):$$(id -g) \
+		-v "$(CURDIR)":/project -w /project \
+		$(DOCKER_DKP_IMAGE) make PLATFORM=switch
+
 # Clean compilation objects
-.PHONY : all run debug clean
+.PHONY : all run debug switch-docker clean
 clean :
 	rm -rf $(OBJ_DIR) $(BIN_DIR) $(LIB_DIR)
