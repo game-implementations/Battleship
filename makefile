@@ -50,7 +50,7 @@ else ifeq ($(PLATFORM),switch)
     # .nro metadata shown in the Homebrew Menu (override on the command line).
     APP_TITLE    ?= Battleship
     APP_AUTHOR   ?= AleixMT
-    APP_VERSION  ?= 1.0.0
+    APP_VERSION  ?= 0.1.0
     APP_ICON     ?= assets/icon.jpg
 
 else

@@ -5,6 +5,12 @@ Human vs human, human vs machine, or machine vs machine on a square board
 (dimensions 8–23). The machine player uses a small state machine to hunt and
 sink ships in as few shots as possible.
 
+**Status: `0.1.0`** — playable, not finished. No save/load/highscore
+persistence (Phase 4, skipped for now); on Switch, input still goes through the
+system software keyboard rather than fully native controls. Version lives in
+`makefile`'s `APP_VERSION` (Switch `.nro` metadata) and is stamped from the git
+tag on release (see CI / release below).
+
 ## Core ideas
 
 - **Language / standard:** C99, warnings-as-guidance (`-O3 -Wall -Wextra -std=c99`).
